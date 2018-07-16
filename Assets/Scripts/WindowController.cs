@@ -19,6 +19,7 @@ public enum ResolutionMode {
  * Handle how the game reacts to window size changes
  */
 public class WindowController : MonoBehaviour {
+
     #region Variables  --------------------------------------------------------- */
 
     #region Linked Scripts
@@ -40,8 +41,8 @@ public class WindowController : MonoBehaviour {
 
     void Start () {
 
-        /* Start the game in the true rendering mode */
-        ChangeCurrentWindowResolutionMode(ResolutionMode.TrueRatioStretch);
+        /* Start the game in the given rendering mode */
+        ChangeCurrentWindowResolutionMode(ResolutionMode.True);
     }
 
     void Update() {
