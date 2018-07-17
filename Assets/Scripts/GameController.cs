@@ -28,9 +28,13 @@ public class GameController : MonoBehaviour {
     /* Game state */
     private bool gameStarted = false;
 
+    /* The player controllers that will be used in the game */
+    private static int playerCount = 2;
+    private PlayerController[] playerControllers;
+
     #endregion
 
-    
+
     #region Built-In Unity Functions ------------------------------------------------------ */
 
     void Update() {
@@ -39,17 +43,51 @@ public class GameController : MonoBehaviour {
          */
 
         if(!gameStarted) {
-            InitializeGameArea();
+            SetupPlayerControllers();
+            SetupGameArea();
             gameStarted = true;
         }
+
+        /* Main game update call */
+        UpdateGame();
     }
 
     #endregion
 
 
-    #region Game Area Functions  --------------------------------------------------------- */
+    #region Setup Functions  --------------------------------------------------------- */
 
-    public void InitializeGameArea() {
+    public void SetupPlayerControllers() {
+        /*
+         * Initialize the playerControllers that will be used in the game
+         */
+        KeyCode[][] defaultKeyCodes = new KeyCode[2][];
+
+        /* Create the controllers if they have not yet been created */
+        if(playerControllers == null) { playerControllers = new PlayerController[playerCount]; }
+        for(int i = 0; i < playerControllers.Length; i++) {
+            if(playerControllers[i] == null) {
+                playerControllers[i] = new PlayerController();
+            }
+        }
+
+        /* Set the default controls for the player controllers */
+        defaultKeyCodes[0] = new KeyCode[] { KeyCode.W, KeyCode.D, KeyCode.S, KeyCode.A, KeyCode.Space };
+        defaultKeyCodes[1] = new KeyCode[] { KeyCode.UpArrow, KeyCode.RightArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightControl };
+
+        /* Assign each player a set of default keys */
+        for(int i = 0; i < Mathf.Min(defaultKeyCodes.Length, playerCount); i++) {
+            /* Assign the movement keys to the player */
+            playerControllers[i].SetMovementKeys(defaultKeyCodes[i][0], defaultKeyCodes[i][1], defaultKeyCodes[i][2], defaultKeyCodes[i][3]);
+
+            /* Assign the extra buttons to the player */
+            for(int j = 4; j < defaultKeyCodes[i].Length; j++) {
+                playerControllers[i].SetExtraButtonKey(j-4, defaultKeyCodes[i][j]);
+            }
+        }
+    }
+    
+    public void SetupGameArea() {
         /*
          * Create the lines and corners that make up the edges of the game area.
          */
@@ -89,6 +127,39 @@ public class GameController : MonoBehaviour {
 
         /* Set up the line drawer to render the game area properly */
         lineDrawer.NewGameArea(gameAreaX, gameAreaY, edges, corners);
+    }
+
+    #endregion
+
+
+
+    #region Game Update Functions  --------------------------------------------------------- */
+
+    private void UpdateGame() {
+        /*
+         * The main call to update the game from the current state.
+         */
+
+        /* Update the player inputs */
+        UpdatePlayerInputs();
+
+        /* Debug to sere if the inputs are working */
+        if(playerControllers[0].up) {
+            Debug.Log("P1 up is pressed");
+        }
+        if(playerControllers[1].up) {
+            Debug.Log("P2 up is pressed");
+        }
+    }
+
+    private void UpdatePlayerInputs() {
+        /*
+         * Update the inputs of each playerController used in this game
+         */
+
+        for(int i = 0; i < playerControllers.Length; i++) {
+            playerControllers[i].UpdateInputs();
+        }
     }
 
     #endregion
