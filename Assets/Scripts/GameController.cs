@@ -21,8 +21,9 @@ public class GameController : MonoBehaviour {
     /* The width of the lines that are created in this game controller */
     private float lineWidth = 5;
 
-    /* The edges of the game area */
+    /* The edges and corners of the game area */
     private Line[] edges;
+    private LineCorner[] corners;
 
     /* Game state */
     private bool gameStarted = false;
@@ -50,7 +51,7 @@ public class GameController : MonoBehaviour {
 
     public void InitializeGameArea() {
         /*
-         * Create the edges of the game area
+         * Create the lines and corners that make up the edges of the game area.
          */
 
         /* Set the sizes of the game area */
@@ -64,7 +65,6 @@ public class GameController : MonoBehaviour {
         edges[2] = new Line(gameAreaX, 0, 0, 0);
         edges[3] = new Line(0, 0, 0, gameAreaY);
 
-        
         /* Set the width and Initialize the meshes for each edge lines */
         foreach(Line edge in edges) {
             edge.width = lineWidth;
@@ -72,9 +72,23 @@ public class GameController : MonoBehaviour {
             edge.GenerateMesh();
         }
 
+        /* Set the corners of the game area. This assumes each edge is set up to connect in order */
+        corners = new LineCorner[edges.Length];
+        for(int i = 0; i < corners.Length; i++) {
+            corners[i] = new LineCorner(edges[i].start);
+        }
+
+        /* Link the edges to the corners */
+        corners[0].AddLine(edges[0]);
+        corners[0].AddLine(edges[edges.Length-1]);
+        for(int i = 1; i < corners.Length; i++) {
+            corners[i].AddLine(edges[i]);
+            corners[i].AddLine(edges[i-1]);
+        }
         
+
         /* Set up the line drawer to render the game area properly */
-        lineDrawer.NewGameArea(gameAreaX, gameAreaY, edges);
+        lineDrawer.NewGameArea(gameAreaX, gameAreaY, edges, corners);
     }
 
     #endregion
