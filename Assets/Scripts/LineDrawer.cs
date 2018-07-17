@@ -13,11 +13,6 @@ public class LineDrawer : MonoBehaviour {
     /* Empty quaternion to use for each line's rotation */
     private Quaternion lineQuat;
 
-    /* Screen resolution values */
-    private ResolutionMode resolutionMode;
-    private float windowWidth;
-    private float windowHeight;
-
     /* The list of lines that need to be drawn */
     private List<Line> lines;
 
@@ -39,7 +34,6 @@ public class LineDrawer : MonoBehaviour {
          */
         lines = new List<Line>();
         lineQuat = Quaternion.Euler(0, 0, 0);
-
     }
 	
 	void Update () {
@@ -58,27 +52,16 @@ public class LineDrawer : MonoBehaviour {
 	}
 
     #endregion
-    
+
 
     #region Set/Get Functions ------------------------------------------------------------- */
 
-    public void SetResolutionMode(ResolutionMode newMode) {
-        /*
-         * Set the current resolution mode used by the renderer
-         */
-        resolutionMode = newMode;
-    }
 
-    public void SetWindowResolution(float height, float width) {
-        /*
-         * Set the saved window resolution to the given sizes
-         */
-        windowHeight = height;
-        windowWidth = width;
-    }
 
     #endregion
 
+
+    #region Outside Called Functions ------------------------------------------------------------- */
 
     public void NewGameArea(float gameAreaWidth, float gameAreaHeight, Line[] edges) {
         /*
@@ -94,6 +77,23 @@ public class LineDrawer : MonoBehaviour {
     }
 
 
+    public void UpdateLineVertices() {
+        /*
+         * Called when the lines need to reset their vertices due to a change 
+         * in the window size or resolution rendering method.
+         */
+
+        if(lines != null) {
+            foreach(Line line in lines) {
+                line.GenerateVertices(gameAreaX, gameAreaY);
+                line.GenerateMesh();
+            }
+        }
+    }
+
+    #endregion
+
+    
     #region Drawing Functions ------------------------------------------------------------- */
 
     private void DrawLine(Line line) {
@@ -101,28 +101,9 @@ public class LineDrawer : MonoBehaviour {
          * Draw the given line onto the screen using the graphics class.
          * Alter the line's size to adjust relative to the window's resolution.
          */
-        Vector2 centerOffset = new Vector2(gameAreaX/2f, gameAreaY/2f);
-
-        /* Don't adjust the size of the line, just set the offset to center it */
-        if(resolutionMode == ResolutionMode.True) {
-            centerOffset = new Vector2(gameAreaX/2f, gameAreaY/2f);
-        }
-
-        /* The resolution mode calls for the line to change it's size relative to the screen */
-        if(resolutionMode == ResolutionMode.Stretch) {
-            float heightRatio = windowHeight/gameAreaY;
-            float widthRatio = windowWidth/gameAreaX;  
-            centerOffset = new Vector2(widthRatio*gameAreaX/2f, heightRatio*gameAreaY/2f);
-        }
-
-        /* Stretch to fit the screen while keeping the ratio intact */
-        else if(resolutionMode == ResolutionMode.TrueRatioStretch) {
-            float ratio = Mathf.Min(windowHeight/gameAreaY, windowWidth/gameAreaX);
-            centerOffset = new Vector2(ratio*gameAreaX/2f, ratio*gameAreaY/2f);
-        }
         
         /* Draw the mesh of the line */
-        Graphics.DrawMesh(line.mesh, -centerOffset, lineQuat, lineMaterial, 0);
+        Graphics.DrawMesh(line.mesh, Vector3.zero, lineQuat, lineMaterial, 0);
     }
 
     #endregion

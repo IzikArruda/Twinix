@@ -18,6 +18,9 @@ public class GameController : MonoBehaviour {
     private float gameAreaX;
     private float gameAreaY;
 
+    /* The width of the lines that are created in this game controller */
+    private float lineWidth = 5;
+
     /* The edges of the game area */
     private Line[] edges;
 
@@ -26,8 +29,7 @@ public class GameController : MonoBehaviour {
 
     #endregion
 
-
-
+    
     #region Built-In Unity Functions ------------------------------------------------------ */
 
     void Update() {
@@ -54,7 +56,6 @@ public class GameController : MonoBehaviour {
         /* Set the sizes of the game area */
         gameAreaX = 100;
         gameAreaY = 100;
-        Line.defaultWidth = 5;
 
         /* Create the edges of the game area that cover each edge of the screen */
         edges = new Line[4];
@@ -63,12 +64,15 @@ public class GameController : MonoBehaviour {
         edges[2] = new Line(gameAreaX, 0, 0, 0);
         edges[3] = new Line(0, 0, 0, gameAreaY);
 
-        /* Initialize the meshes for the edge lines */
+        
+        /* Set the width and Initialize the meshes for each edge lines */
         foreach(Line edge in edges) {
-            edge.GenerateVertices();
+            edge.width = lineWidth;
+            edge.GenerateVertices(gameAreaX, gameAreaY);
             edge.GenerateMesh();
         }
 
+        
         /* Set up the line drawer to render the game area properly */
         lineDrawer.NewGameArea(gameAreaX, gameAreaY, edges);
     }
