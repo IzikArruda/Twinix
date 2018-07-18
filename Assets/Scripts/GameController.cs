@@ -10,10 +10,13 @@ public class GameController {
 
     #region Variables  --------------------------------------------------------- */
 
-    #region Linked Scripts
+    #region Linked Scripts 
     private LineDrawer lineDrawer;
     public WindowController windowController;
     #endregion
+
+    /* The gameObject that will hold the players in the game */
+    private GameObject playerContainer;
 
     /* How long the game has been running for */
     private float tick = 0;
@@ -32,7 +35,7 @@ public class GameController {
     /* Game state */
     private bool gameStarted = false;
 
-    /* The player controllers that will be used in the game */
+    /* The players that will be used in the game */
     private static int playerCount = 2;
     private Player[] players;
 
@@ -41,11 +44,12 @@ public class GameController {
 
     #region Constructors --------------------------------------------------------- */
 
-    public GameController(float width, float height, WindowController linkedWindow) {
+    public GameController(GameObject container, float width, float height, WindowController linkedWindow) {
         /*
          * Create a new game with the given sizes
          */
-         
+
+        playerContainer = container;
         gameAreaX = width;
         gameAreaY = height;
         windowController = linkedWindow;
@@ -67,30 +71,27 @@ public class GameController {
         /*
          * Initialize the players that will be used in the game
          */
-        KeyCode[][] defaultKeyCodes = new KeyCode[2][];
 
         /* Create the players if they have not yet been created */
         if(players == null) { players = new Player[playerCount]; }
         for(int i = 0; i < players.Length; i++) {
             if(players[i] == null) {
-                players[i] = new Player();
+                players[i] = new Player(playerContainer);
             }
         }
 
-        /* Set the default controls for the player's controls */
-        defaultKeyCodes[0] = new KeyCode[] { KeyCode.W, KeyCode.D, KeyCode.S, KeyCode.A, KeyCode.Space };
-        defaultKeyCodes[1] = new KeyCode[] { KeyCode.UpArrow, KeyCode.RightArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightControl };
-
-        /* Assign each player a set of default keys */
-        for(int i = 0; i < Mathf.Min(defaultKeyCodes.Length, playerCount); i++) {
-            /* Assign the movement keys to the player */
-            players[i].controls.SetMovementKeys(defaultKeyCodes[i][0], defaultKeyCodes[i][1], defaultKeyCodes[i][2], defaultKeyCodes[i][3]);
-
-            /* Assign the extra buttons to the player */
-            for(int j = 4; j < defaultKeyCodes[i].Length; j++) {
-                players[i].controls.SetExtraButtonKey(j-4, defaultKeyCodes[i][j]);
-            }
+        /* Set the default controls for the each player */
+        for(int i = 0; i < players.Length; i++) {
+            players[i].SetupControls(i);
         }
+
+        /* Set the sprites used by the players */
+        for(int i = 0; i < players.Length; i++) {
+            players[i].SetupSprite(windowController.GetSprite(i));
+        }
+
+        /* Add the players to the lineDrawer so they will render */
+        lineDrawer.AddPlayers(players);
     }
     
     public void SetupGameArea() {
@@ -159,13 +160,8 @@ public class GameController {
         /* Update the player inputs */
         UpdatePlayerInputs();
 
-        /* Debug to see if the inputs are working */
-        if(players[0].controls.up) {
-            Debug.Log("P1 up is pressed");
-        }
-        if(players[1].controls.up) {
-            Debug.Log("P2 up is pressed");
-        }
+        /* Move the player depending on their inputted direction */
+        UpdatePlayerPositions();
 
         /* Draw the objects to the screen */
         lineDrawer.DrawAll();
@@ -182,9 +178,31 @@ public class GameController {
         }
     }
 
+    private void UpdatePlayerPositions() {
+        /*
+         * Look at the inputs of each player and update their position relative
+         * to the directions they are inputting.
+         */
+
+        for(int i = 0; i < players.Length; i++) {
+            if(players[i].controls.up) {
+                players[i].position += Vector3.up;
+            }
+            if(players[i].controls.right) {
+                players[i].position += Vector3.right;
+            }
+            if(players[i].controls.down) {
+                players[i].position += Vector3.down;
+            }
+            if(players[i].controls.left) {
+                players[i].position += Vector3.left;
+            }
+        }
+    }
+
     #endregion
 
-    
+
     #region Helper Functions  --------------------------------------------------------- */
 
     public Vector2 GameToScreenPos(Vector2 gamePosition) {

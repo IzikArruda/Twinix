@@ -17,9 +17,10 @@ public class LineDrawer {
     /* Empty quaternion to use for each line's rotation */
     private Quaternion lineQuat;
 
-    /* The list of lines and corners that need to be drawn */
+    /* The list of lines, corners and players that need to be drawn */
     private List<Line> lines;
     private List<LineCorner> corners;
+    private List<Player> players;
 
     /* Material used for each line rendered */
     public Material lineMaterial;
@@ -35,6 +36,7 @@ public class LineDrawer {
          */
         lines = new List<Line>();
         corners = new List<LineCorner>();
+        players = new List<Player>();
         lineQuat = Quaternion.Euler(0, 0, 0);
         lineMaterial = null;
         gameController = gameCont;
@@ -59,6 +61,15 @@ public class LineDrawer {
         }
     }
 
+    public void AddPlayers(Player[] playersToAdd) {
+        /*
+         * Add the given array of players to the list of players to render
+         */
+
+        for(int i = 0; i < playersToAdd.Length; i++) {
+            players.Add(playersToAdd[i]);
+        }
+    }
 
     public void UpdateLineVertices() {
         /*
@@ -89,6 +100,9 @@ public class LineDrawer {
         }
         for(int i = 0; i < corners.Count; i++) {
             DrawCorner(corners[i]);
+        }
+        for(int i = 0; i < players.Count; i++) {
+            DrawPlayer(players[i]);
         }
 
     }
@@ -146,6 +160,21 @@ public class LineDrawer {
         Debug.DrawLine(center, vert2);
     }
     
+    private void DrawPlayer(Player player) {
+        /*
+         * Render the player at their given position. For now, draw the player using debug.Drawline
+         */
+        Vector3 playerPos = gameController.GameToScreenPos(player.position);
+
+        Debug.DrawLine(playerPos + Vector3.up, playerPos + Vector3.down);
+        Debug.DrawLine(playerPos + Vector3.left, playerPos + Vector3.right);
+
+        /* Set the size of the player's sprite */
+        player.SetSpritesize(50);
+
+        /* Place the player's sprite at the given player position */
+        player.SetPlayerPosition(playerPos);
+    }
 
     #endregion
 }

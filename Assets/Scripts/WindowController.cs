@@ -29,6 +29,12 @@ public class WindowController : MonoBehaviour {
     /* Main camera */
     public Camera mainCamera;
 
+    /* The container for the players used by the gameController */
+    private GameObject playerContainer;
+
+    /* The sprites used for the players */
+    public Sprite[] playerSprites;
+
     /* Resolution variables */
     public ResolutionMode currentResolutionMode = ResolutionMode.NULL;
     public float windowWidth = -1;
@@ -45,15 +51,18 @@ public class WindowController : MonoBehaviour {
         /*
          * Setup the window and it's values, then create a game
          */
+
+        /* Setup the gameObjects to be used */
+        SetupGameObjects();
         
         /* Save the current window size */
         UpdateSavedWindowResolution();
 
         /* Start the game in the given rendering mode */
-        ChangeCurrentWindowResolutionMode(ResolutionMode.Stretch);
+        ChangeCurrentWindowResolutionMode(ResolutionMode.TrueRatioStretch);
 
         /* Create a basic game area once the window is setup */
-        gameController = new GameController(100, 100, this);
+        CreateNewGame();
     }
 
     void Update() {
@@ -72,7 +81,53 @@ public class WindowController : MonoBehaviour {
     }
 
     #endregion
+
     
+    #region Set/Get Functions  --------------------------------------------------------- */
+    
+    public void SetupGameObjects() {
+        /*
+         * Create the required gameObjects that will be used
+         */
+
+        playerContainer = new GameObject();
+        playerContainer.name = "Player Container";
+        playerContainer.transform.SetParent(transform);
+        playerContainer.transform.position = new Vector3(0, 0, 0);
+        playerContainer.transform.rotation = Quaternion.Euler(0, 0, 0);
+        playerContainer.transform.localScale = new Vector3(1, 1, 1);
+
+    }
+
+    public Sprite GetSprite(int index) {
+        /*
+         * Return the sprite defined by the given index in the playerSprites array.
+         * If the given index is out of bounds, just use the first sprite.
+         */
+        Sprite chosenSprite = playerSprites[0];
+
+        if(index < playerSprites.Length) {
+            chosenSprite = playerSprites[index];
+        }
+
+        return chosenSprite;
+    }
+
+    #endregion
+
+
+    #region GameController Functions ------------------------------------------------------- */
+
+    public void CreateNewGame() {
+        /*
+         * Create a new gameController and assign it to a new object
+         */
+
+        gameController = new GameController(playerContainer, 100, 100, this);
+    }
+
+    #endregion
+
 
     #region Resolution Functions ------------------------------------------------------- */
 
