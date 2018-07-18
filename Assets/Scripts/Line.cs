@@ -18,20 +18,8 @@ public class Line {
     #endregion
 
 
-    #region Line Creation Functions  --------------------------------------------------------- */
-
-    public Line() {
-        /*
-         * Set the line's varaibles to their default
-         */
-
-        width = -1;
-        start = Vector2.zero;
-        end = Vector2.zero;
-        vertices = new Vector3[4];
-        mesh = new Mesh();
-    }
-
+    #region Constructors --------------------------------------------------------- */
+    
     public Line(float startX, float startY, float endX, float endY) {
         /*
          * Create a line with the give start and end positions. Calculate the starting position.
@@ -43,65 +31,33 @@ public class Line {
         vertices = new Vector3[4];
         mesh = new Mesh();
     }
-
-    public static Line CreateLine() {
-        /*
-         * Create a new, empty line object
-         */
-         
-        return new Line();
-    }
-
+    
     #endregion
 
 
     #region Mesh Creation Functions  --------------------------------------------------------- */
 
-    public void GenerateVertices(float gameAreaX, float gameAreaY) {
+    public void GenerateVertices(GameController gameController) {
         /*
          * Generate the vertices and their positions that will be used to render the line as a mesh.
          * Requires the start, end and width values to be set. Ther vertices are placed in an order
          * so that two triangles of [0, 1, 2] and [2, 3, 0] will form the line with a proper normal.
-         * Depending on the current resolution mode and size of the gameArea, adjust the vertices.
          * 
          * A line requires access to a windowController's variables in order to properly place the 
-         * vertices in relation to the window size and rendering method.
+         * vertices in relation to the window size and rendering method. This is done
+         * by accessing the given gameController's GameToScreenPos helper function.
          */
-        Vector2 lineExtraWidth = Vector2.zero;
-        Vector2 lineExtraLength = Vector2.zero;
-        Vector3 centerOffset = Vector3.zero;
-        float heightRatio = 1;
-        float widthRatio = 1;
+        Vector3 lineExtraWidth = Vector3.zero;
+        Vector3 lineExtraLength = Vector3.zero;
 
 
-        /* Get values from the windowController that control how the game is rendered */
-        float windowHeight = WindowController.windowHeight - WindowController.edgeBufferSize;
-        float windowWidth = WindowController.windowWidth - WindowController.edgeBufferSize;
+        /* Convert each vertice of the line from game position to screen positions */
+        vertices[0] = gameController.GameToScreenPos(end);
+        vertices[1] = gameController.GameToScreenPos(end);
+        vertices[2] = gameController.GameToScreenPos(start);
+        vertices[3] = gameController.GameToScreenPos(start);
 
 
-        /* Don't adjust the size of the line, just set the offset to center it */
-        if(WindowController.currentResolutionMode == ResolutionMode.True) {
-            centerOffset = new Vector2(gameAreaX/2f, gameAreaY/2f);
-        }
-        /* Call for the line to stretch it's size relative to the screen's width and height */
-        else if(WindowController.currentResolutionMode == ResolutionMode.Stretch) {
-            heightRatio = windowHeight/gameAreaY;
-            widthRatio = windowWidth/gameAreaX;
-            centerOffset = new Vector2(widthRatio*gameAreaX/2f, heightRatio*gameAreaY/2f);
-        }
-        /* Stretch to fit the screen while keeping the ratio intact */
-        else if(WindowController.currentResolutionMode == ResolutionMode.TrueRatioStretch) {
-            float ratio = Mathf.Min(windowHeight/gameAreaY, windowWidth/gameAreaX);
-            heightRatio = ratio;
-            widthRatio = ratio;
-            centerOffset = new Vector2(ratio*gameAreaX/2f, ratio*gameAreaY/2f);
-        }
-        /* Print an error if we are currently in a rendering mode not handled */
-        else {
-            Debug.Log("WARNING: Resolution mode " + WindowController.currentResolutionMode + " is not handled by the line");
-        }
-
-        
         /* Apply the line's width to either the Y or X axis, depending on what axis the line is on */
         if(start.x == end.x/* Horizontal */) {
             lineExtraWidth = new Vector2(width/2f, 0);
@@ -127,18 +83,12 @@ public class Line {
             Debug.Log("WARNING: Line is not directly horizontal or vertical");
         }
         
-
-
-        /* Set the vertices using the line's extra width */
-        vertices[0] = new Vector2(widthRatio*end.x, heightRatio*end.y) - lineExtraWidth + lineExtraLength;
-        vertices[1] = new Vector2(widthRatio*end.x, heightRatio*end.y) + lineExtraWidth + lineExtraLength;
-        vertices[2] = new Vector2(widthRatio*start.x, heightRatio*start.y) + lineExtraWidth - lineExtraLength;
-        vertices[3] = new Vector2(widthRatio*start.x, heightRatio*start.y) - lineExtraWidth - lineExtraLength;
-
-        /* Apply the center offset to each vertice */
-        for(int i = 0; i < vertices.Length; i++) {
-            vertices[i] -= centerOffset;
-        }
+        /* Put the desired distance between the vertices to add width to the lines.
+         * Line width is not effected and does not effect game area size. */
+        vertices[0] += -lineExtraWidth + lineExtraLength;
+        vertices[1] += lineExtraWidth + lineExtraLength;
+        vertices[2] += lineExtraWidth - lineExtraLength;
+        vertices[3] += -lineExtraWidth - lineExtraLength;
 
         /* Assign the vertices to the mesh */
         if(mesh != null) {

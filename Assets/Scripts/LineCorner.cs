@@ -32,8 +32,7 @@ public class LineCorner {
     public Vector2 position;
 
     #endregion
-
-
+    
 
     #region Constructors  --------------------------------------------------------- */
 
@@ -51,8 +50,7 @@ public class LineCorner {
 
     #endregion
 
-
-
+    
     #region Line Connection Functions  --------------------------------------------------------- */
 
     public bool AddLine(Line newLine) {
@@ -76,8 +74,6 @@ public class LineCorner {
     public bool AddLine(Line newLine, OrthogonalDirection orthDir) {
         /*
          * Add the given line to this corner. Return true if it's added, false if not.
-         * A line will not be added if it doesn't start or end on this corner or
-         * the direction that it is connected by already has a line (print error in this case)
          */
         bool lineAdded = false;
 
@@ -131,8 +127,7 @@ public class LineCorner {
 
     #endregion
 
-
-
+    
     #region Helper Functions  --------------------------------------------------------- */
 
     public OrthogonalDirection LineSide(Line line) {

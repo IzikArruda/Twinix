@@ -2,13 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 
-
 /*
  * Sends requests directly to the graphics class to draw meshes created to look like lines.
+ * A line drawer is linked to a GamesController and will draw all the components used by it.
  */
-public class LineDrawer : MonoBehaviour {
+public class LineDrawer {
 
     #region Variables  --------------------------------------------------------- */
+
+    #region Linked Scripts
+    private GameController gameController;
+    #endregion
 
     /* Empty quaternion to use for each line's rotation */
     private Quaternion lineQuat;
@@ -17,53 +21,34 @@ public class LineDrawer : MonoBehaviour {
     private List<Line> lines;
     private List<LineCorner> corners;
 
-    /* Game area sizes */
-    private float gameAreaX;
-    private float gameAreaY;
-
     /* Material used for each line rendered */
     public Material lineMaterial;
 
     #endregion
 
 
-    #region Built-In Unity Functions ------------------------------------------------------ */
+    #region Constructors ------------------------------------------------------ */
 
-    void Start () {
+    public LineDrawer(GameController gameCont) {
         /*
          * Initialize the lines and corner lists and some variables used by this script
          */
         lines = new List<Line>();
         corners = new List<LineCorner>();
         lineQuat = Quaternion.Euler(0, 0, 0);
+        lineMaterial = null;
+        gameController = gameCont;
     }
-	
-	void Update () {
-        /*
-         * Draw each line and corner that has been saved to their respective list.
-         */
-        
-        for(int i = 0; i < lines.Count; i++) {
-            DrawLine(lines[i]);
-        }
-        for(int i = 0; i < corners.Count; i++) {
-            DrawCorner(corners[i]);
-        }
-
-	}
 
     #endregion
 
-
+    
     #region Outside Called Functions ------------------------------------------------------------- */
 
-    public void NewGameArea(float gameAreaWidth, float gameAreaHeight, Line[] edges, LineCorner[] edgeCorner) {
+    public void NewGameArea(Line[] edges, LineCorner[] edgeCorner) {
         /*
          * A new game area is set up, so save it's sizes and add it's edges/corners to be rendered
          */
-
-        gameAreaX = gameAreaWidth;
-        gameAreaY = gameAreaHeight;
 
         for(int i = 0; i < edges.Length; i++) {
             lines.Add(edges[i]);
@@ -83,7 +68,7 @@ public class LineDrawer : MonoBehaviour {
 
         if(lines != null) {
             foreach(Line line in lines) {
-                line.GenerateVertices(gameAreaX, gameAreaY);
+                line.GenerateVertices(gameController);
                 line.GenerateMesh();
             }
         }
@@ -91,8 +76,22 @@ public class LineDrawer : MonoBehaviour {
 
     #endregion
 
-    
+
     #region Drawing Functions ------------------------------------------------------------- */
+
+    public void DrawAll() {
+        /*
+         * Draw all the required objects
+         */
+
+        for(int i = 0; i < lines.Count; i++) {
+            DrawLine(lines[i]);
+        }
+        for(int i = 0; i < corners.Count; i++) {
+            DrawCorner(corners[i]);
+        }
+
+    }
 
     private void DrawLine(Line line) {
         /*
@@ -146,6 +145,7 @@ public class LineDrawer : MonoBehaviour {
         Debug.DrawLine(center, vert1);
         Debug.DrawLine(center, vert2);
     }
+    
 
     #endregion
 }

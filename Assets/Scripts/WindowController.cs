@@ -23,18 +23,18 @@ public class WindowController : MonoBehaviour {
     #region Variables  --------------------------------------------------------- */
 
     #region Linked Scripts
-    public LineDrawer lineDrawer;
+    public GameController gameController;
     #endregion
 
     /* Main camera */
     public Camera mainCamera;
 
     /* Resolution variables */
-    public static ResolutionMode currentResolutionMode = ResolutionMode.NULL;
-    public static float windowWidth = -1;
-    public static float windowHeight = -1;
+    public ResolutionMode currentResolutionMode = ResolutionMode.NULL;
+    public float windowWidth = -1;
+    public float windowHeight = -1;
     //How many pixels the screen is zoomed out. Used to ensure the edge lines are fully visible
-    public static float edgeBufferSize = 10;
+    public float edgeBufferSize = 10;
 
     #endregion
 
@@ -42,12 +42,18 @@ public class WindowController : MonoBehaviour {
     #region Built-In Unity Functions  --------------------------------------------------------- */
 
     void Start () {
-
+        /*
+         * Setup the window and it's values, then create a game
+         */
+        
         /* Save the current window size */
         UpdateSavedWindowResolution();
 
         /* Start the game in the given rendering mode */
         ChangeCurrentWindowResolutionMode(ResolutionMode.Stretch);
+
+        /* Create a basic game area once the window is setup */
+        gameController = new GameController(100, 100, this);
     }
 
     void Update() {
@@ -57,8 +63,12 @@ public class WindowController : MonoBehaviour {
             UpdateSavedWindowResolution();
 
             /* Update how the lines are rendered with this new window size */
-            lineDrawer.UpdateLineVertices();
+            gameController.UpdateLineVertices();
         }
+
+
+        /* Update the game to the next step */
+        gameController.UpdateGame();
     }
 
     #endregion
@@ -76,7 +86,9 @@ public class WindowController : MonoBehaviour {
             currentResolutionMode = newMode;
 
             /* Update how the lines are rendered with this new window size */
-            lineDrawer.UpdateLineVertices();
+            if(gameController!= null) {
+                gameController.UpdateLineVertices();
+            }
         }
     }
     

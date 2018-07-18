@@ -2,10 +2,9 @@
 using System.Collections;
 
 /*
- * A controller for a player. It tracks the state of a set of buttons 
- * used to control the player.
+ * Handles the controls for a player. It tracks the state of a set of buttons.
  */
-public class PlayerController {
+public class PlayerControls {
 
     #region Variables  --------------------------------------------------------- */
 
@@ -26,11 +25,11 @@ public class PlayerController {
     #endregion
 
 
-    #region Player Controller Creation Functions  --------------------------------------------------------- */
+    #region Constructors  --------------------------------------------------------- */
 
-    public PlayerController() {
+    public PlayerControls() {
         /*
-         * Create the playerController with default key values
+         * Create the controller with default key values
          */
 
         up = false;
