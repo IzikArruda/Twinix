@@ -11,8 +11,11 @@ public class Player {
     /* The controls used by this player */
     public PlayerControls controls;
 
-    /* The player's position */
-    public Vector3 position;
+    /* The player's position in the game area */
+    public Vector3 gamePosition;
+
+    /* The line the player is currently linked to */
+    public Line currentLine;
 
     /* The gameObject that contains the player's sprite renderer */
     public GameObject playerGameObject;
@@ -29,8 +32,9 @@ public class Player {
          * be placed in the given playerContainer.
          */
 
+        currentLine = null;
         controls = new PlayerControls();
-        position = Vector3.zero;
+        gamePosition = Vector3.zero;
 
         /* Create an object with a sprite renderer for the player */
         playerGameObject = new GameObject();
@@ -84,6 +88,17 @@ public class Player {
         spriteRenderer.sprite = playerSprite;
     }
 
+    public void SetStartingLine(Line startingLine, float distance) {
+        /*
+         * Setup the player's starting position onto the given line at the position
+         * with the given amount of distance from it's starting point.
+         * Distance ranges from [0, 1].
+         */
+
+        currentLine = startingLine;
+        SetPlayerPosition(Vector3.Lerp(startingLine.start, startingLine.end, distance));
+    }
+
     public void SetSpritesize(float spriteSize) {
         /*
          * Set the size of the player's sprite
@@ -94,10 +109,18 @@ public class Player {
 
     public void SetPlayerPosition(Vector3 playerPos) {
         /*
-         * Place the player's sprite at the given position
+         * Place the player's position in the game by setting their gamePosition
          */
 
-        playerGameObject.transform.position = playerPos;
+        gamePosition = playerPos;
+    }
+
+    public void SetSpritePositon(Vector3 spritePos) {
+        /*
+         * Set the position of the player's sprite by setting the player object's position
+         */
+
+        playerGameObject.transform.position = spritePos;
     }
 
     #endregion

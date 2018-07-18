@@ -126,8 +126,12 @@ public class GameController {
             corners[i].AddLine(edges[i]);
             corners[i].AddLine(edges[i-1]);
         }
-
         
+        /* Place the players onto the edges */
+        for(int i = 0; i < players.Length; i++) {
+            players[i].SetStartingLine(edges[3], 0.5f);
+        }
+
         /* Give the lineDrawer the new edges and corners of the game area */
         lineDrawer.NewGameArea(edges, corners);
     }
@@ -186,17 +190,42 @@ public class GameController {
 
         for(int i = 0; i < players.Length; i++) {
             if(players[i].controls.up) {
-                players[i].position += Vector3.up;
+                players[i].gamePosition += Vector3.up;
             }
             if(players[i].controls.right) {
-                players[i].position += Vector3.right;
+                players[i].gamePosition += Vector3.right;
             }
             if(players[i].controls.down) {
-                players[i].position += Vector3.down;
+                players[i].gamePosition += Vector3.down;
             }
             if(players[i].controls.left) {
-                players[i].position += Vector3.left;
+                players[i].gamePosition += Vector3.left;
             }
+
+
+
+
+
+
+
+            /* Move the player up their line */
+            //Pressing up will cause this order:
+            //1. Check how much distance is between the players current position and the corner up the line
+            //IDEA: Get a function for a line which returns the distance from the given position towards a given direction until it hits a corner
+            //thius function can be used to help with recursive calls once we hit a corner
+
+            //Check if the player is on their line
+            if(i == 0) {
+                if(players[i].currentLine.IsPointOnLine(players[i].gamePosition)) {
+                    Debug.Log("Player is on the line");
+                }
+                else {
+                    Debug.Log("Player is off the line");
+                }
+            }
+
+
+
         }
     }
 

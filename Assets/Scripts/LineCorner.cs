@@ -79,28 +79,16 @@ public class LineCorner {
 
         switch(orthDir) {
             case OrthogonalDirection.Up:
-                if(up == null) {
-                    up = newLine;
-                    lineAdded = true;
-                }
+                lineAdded = SetLine(ref up, newLine);
                 break;
             case OrthogonalDirection.Right:
-                if(right == null) {
-                    right = newLine;
-                    lineAdded = true;
-                }
+                lineAdded = SetLine(ref right, newLine);
                 break;
             case OrthogonalDirection.Down:
-                if(down == null) {
-                    down = newLine;
-                    lineAdded = true;
-                }
+                lineAdded = SetLine(ref down, newLine);
                 break;
             case OrthogonalDirection.Left:
-                if(left == null) {
-                    left = newLine;
-                    lineAdded = true;
-                }
+                lineAdded = SetLine(ref left, newLine);
                 break;
             default:
                 lineAdded = false;
@@ -110,15 +98,18 @@ public class LineCorner {
         return lineAdded;
     }
 
-    private bool SetLine(Line newLine, Line savedLine) {
+    private bool SetLine(ref Line savedLine, Line newLine) {
         /*
          * Set the new given line to the corner's saved line.
          * Return true if it was able to be set, false if not.
+         * 
+         * When a corner is assigned a line, also set the line's corner
          */
         bool lineSet = false;
 
         if(savedLine == null) {
             savedLine = newLine;
+            newLine.AddCorner(this);
             lineSet = true;
         }
 

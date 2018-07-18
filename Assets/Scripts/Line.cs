@@ -3,7 +3,8 @@ using System.Collections;
 
 
 /*
- * The Line class that the line renderer will use to draw the lines
+ * The Line class that the line renderer will use to draw the lines.
+ * Each line has a start and end point, each ending with a corner.
  */
 public class Line {
 
@@ -11,7 +12,9 @@ public class Line {
 
     public float width;
     public Vector2 start;
+    public LineCorner startCorner;
     public Vector2 end;
+    public LineCorner endCorner;
     public Vector3[] vertices;
     public Mesh mesh;
 
@@ -114,6 +117,118 @@ public class Line {
         mesh.vertices = vertices;
         mesh.triangles = triangles; 
         mesh.normals = normals;
+    }
+
+    #endregion
+
+    
+    #region Corner Functions  --------------------------------------------------------- */
+    
+    public void AddCorner(LineCorner newCorner) {
+        /*
+         * Add the given corner to this line object. 
+         */
+
+        /* The newCorner is on the line's start position */
+        if(start.Equals(newCorner.position)) {
+            if(startCorner == null) {
+                startCorner = newCorner;
+            }
+            else {
+                Debug.Log("WARNING: Trying to add a corner to a line's start, but already have a start corner assigned");
+            }
+        }
+
+        /* The newCorner is on the line's end position */
+        else if(end.Equals(newCorner.position)) {
+            if(endCorner == null) {
+                endCorner = newCorner;
+            }
+            else {
+                Debug.Log("WARNING: Trying to add a corner to a line's end, but already have a end corner assigned");
+            }
+        }
+
+        /* The newCorner is not on one of the line's ends */
+        else {
+            Debug.Log("WARNING: Trying to add a corner onto a spot not on the edge of a line");
+        }
+    }
+
+    #endregion
+
+
+    #region Helper Functions  --------------------------------------------------------- */
+
+    public void DistanceToCornerFrom(Vector3 givenPositon, OrthogonalDirection direction) {
+        /*
+         * Return the amount of in-game distance from the given point along 
+         * the line towards the given direction until it reaches the corner of the line.
+         * 
+         * If the given point is not on the line or the direction does not follow it, print an error.
+         */
+         
+    }
+
+    public bool IsHorizontal() {
+        /*
+         * Return true if the line is completely horizontal
+         */
+
+        return (start.y == end.y);
+    }
+
+    public bool IsVertical() {
+        /*
+         * Return true if the line is completely vertical
+         */
+
+        return (start.x == end.x);
+    }
+
+    public bool IsPointOnLine(Vector3 point) {
+        /*
+         * Return true if the given point is on this line
+         */
+        bool onLine = false;
+        bool lineFlipped = false;
+
+        if(IsHorizontal()) {
+            if(point.y == start.y) {
+                lineFlipped = start.x < end.x;
+                if(point.x >= (lineFlipped ? start.x : end.x) && point.x <= (lineFlipped ? end.x : start.x)) {
+                    onLine = true;
+                }
+
+                else {
+                    //The point is not within the start or end points
+                }
+            }
+            else {
+                //Point is not on the same horizontal axis
+            }
+        }
+
+        else if(IsVertical()) {
+            if(point.x == start.x) {
+                lineFlipped = start.y < end.y;
+                if(point.y >= (lineFlipped ? start.y : end.y) && point.y <= (lineFlipped ? end.y : start.y)) {
+                    onLine = true;
+                }
+                else {
+                    //The point is not within the start or end points
+                }
+            }
+            else {
+                //Point is not on the same vertical axis
+            }
+        }
+
+        else {
+            Debug.Log("WARNING: Line is not vertical or horizontal");
+        }
+
+        return onLine;
     }
 
     #endregion

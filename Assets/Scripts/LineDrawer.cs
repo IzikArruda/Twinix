@@ -162,9 +162,9 @@ public class LineDrawer {
     
     private void DrawPlayer(Player player) {
         /*
-         * Render the player at their given position. For now, draw the player using debug.Drawline
+         * Render the player's sprite using thier game position converted to the screen.
          */
-        Vector3 playerPos = gameController.GameToScreenPos(player.position);
+        Vector3 playerPos = gameController.GameToScreenPos(player.gamePosition);
 
         Debug.DrawLine(playerPos + Vector3.up, playerPos + Vector3.down);
         Debug.DrawLine(playerPos + Vector3.left, playerPos + Vector3.right);
@@ -173,7 +173,7 @@ public class LineDrawer {
         player.SetSpritesize(50);
 
         /* Place the player's sprite at the given player position */
-        player.SetPlayerPosition(playerPos);
+        player.SetSpritePositon(playerPos);
     }
 
     #endregion
