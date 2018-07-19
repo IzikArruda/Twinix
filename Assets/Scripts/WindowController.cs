@@ -123,7 +123,7 @@ public class WindowController : MonoBehaviour {
          * Create a new gameController and assign it to a new object
          */
 
-        gameController = new GameController(playerContainer, 100, 100, this);
+        gameController = new GameController(playerContainer, 25, 25, this);
     }
 
     #endregion

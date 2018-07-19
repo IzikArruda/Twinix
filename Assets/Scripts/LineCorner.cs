@@ -31,14 +31,14 @@ public class LineCorner {
     public Line left;
 
     /* The position of the connection */
-    public Vector2 position;
+    public Vector3 position;
 
     #endregion
     
 
     #region Constructors  --------------------------------------------------------- */
 
-    public LineCorner(Vector2 cornerPos) {
+    public LineCorner(Vector3 cornerPos) {
         /*
          * Create a new empty line corner at the given position
          */
@@ -127,7 +127,7 @@ public class LineCorner {
         /*
          * Return which side of this corner the given line is connected to.
          */
-        Vector2 direction = Vector2.zero;
+        Vector3 direction = Vector3.zero;
         OrthogonalDirection orthogonalDirection = OrthogonalDirection.NULL;
         
         /* The line hits the corner in it's start point */
@@ -145,16 +145,16 @@ public class LineCorner {
         
         /* Get the orthoganal direction of the corner that the line is connected to */
         direction.Normalize();
-        if(direction.Equals(Vector2.up)) {
+        if(direction.Equals(Vector3.up)) {
             orthogonalDirection = OrthogonalDirection.Up;
         }
-        else if(direction.Equals(Vector2.right)) {
+        else if(direction.Equals(Vector3.right)) {
             orthogonalDirection = OrthogonalDirection.Right;
         }
-        else if(direction.Equals(Vector2.down)) {
+        else if(direction.Equals(Vector3.down)) {
             orthogonalDirection = OrthogonalDirection.Down;
         }
-        else if(direction.Equals(Vector2.left)) {
+        else if(direction.Equals(Vector3.left)) {
             orthogonalDirection = OrthogonalDirection.Left;
         }
         
@@ -177,26 +177,48 @@ public class LineCorner {
         return (direction == OrthogonalDirection.Up || direction == OrthogonalDirection.Down);
     }
 
-    static public Vector2 DirectionToVector(OrthogonalDirection direction) {
+    static public Vector3 DirectionToVector(OrthogonalDirection direction) {
         /*
          * Convert the given orthogonal direction to it's Vector equivalent
          */
-        Vector2 directionVector = new Vector2(0, 0);
+        Vector3 directionVector = new Vector3(0, 0, 0);
 
         if(direction == OrthogonalDirection.Up) {
-            directionVector = Vector2.up;
+            directionVector = Vector3.up;
         }
         else if(direction == OrthogonalDirection.Right) {
-            directionVector = Vector2.right;
+            directionVector = Vector3.right;
         }
         else if(direction == OrthogonalDirection.Down) {
-            directionVector = Vector2.down;
+            directionVector = Vector3.down;
         }
         else if(direction == OrthogonalDirection.Left) {
-            directionVector = Vector2.left;
+            directionVector = Vector3.left;
         }
 
         return directionVector;
+    }
+
+    public Line AttachedLineAt(OrthogonalDirection direction) {
+        /*
+         * Return the line attached to this corner at the given direction
+         */
+        Line attachedLine = null;
+
+        if(direction == OrthogonalDirection.Up) {
+            attachedLine = up;
+        }
+        else if(direction == OrthogonalDirection.Right) {
+            attachedLine = right;
+        }
+        else if(direction == OrthogonalDirection.Down) {
+            attachedLine = down;
+        }
+        else if(direction == OrthogonalDirection.Left) {
+            attachedLine = left;
+        }
+
+        return attachedLine;
     }
 
     #endregion

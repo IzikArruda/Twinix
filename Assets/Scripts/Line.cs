@@ -11,9 +11,9 @@ public class Line {
     #region Variables  --------------------------------------------------------- */
 
     public float width;
-    public Vector2 start;
+    public Vector3 start;
     public LineCorner startCorner;
-    public Vector2 end;
+    public Vector3 end;
     public LineCorner endCorner;
     public Vector3[] vertices;
     public Mesh mesh;
@@ -29,8 +29,8 @@ public class Line {
          */
 
         width = -1;
-        start = new Vector2(startX, startY);
-        end = new Vector2(endX, endY);
+        start = new Vector3(startX, startY);
+        end = new Vector3(endX, endY);
         vertices = new Vector3[4];
         mesh = new Mesh();
     }
@@ -63,8 +63,8 @@ public class Line {
 
         /* Apply the line's width to either the Y or X axis, depending on what axis the line is on */
         if(start.x == end.x/* Horizontal */) {
-            lineExtraWidth = new Vector2(width/2f, 0);
-            lineExtraLength = new Vector2(0, width/2f);
+            lineExtraWidth = new Vector3(width/2f, 0);
+            lineExtraLength = new Vector3(0, width/2f);
             /* Flip the mesh if needed */
             if(start.y > end.y) {
                 lineExtraWidth *= -1;
@@ -72,8 +72,8 @@ public class Line {
             }
         }
         else if(start.y == end.y/* Vertical */) {
-            lineExtraWidth = new Vector2(0, width/2f);
-            lineExtraLength = new Vector2(width/2f, 0);
+            lineExtraWidth = new Vector3(0, width/2f);
+            lineExtraLength = new Vector3(width/2f, 0);
             /* Flip the mesh if needed */
             if(start.x < end.x) {
                 lineExtraWidth *= -1;
@@ -157,10 +157,12 @@ public class Line {
 
     #endregion
 
+    
+
 
     #region Helper Functions  --------------------------------------------------------- */
 
-    public float DistanceToCornerFrom(Vector2 givenPositon, OrthogonalDirection direction) {
+    public float DistanceToCornerFrom(Vector3 givenPositon, OrthogonalDirection direction) {
         /*
          * Return the amount of in-game distance from the given point along 
          * the line towards the given direction until it reaches the corner of the line.
@@ -177,19 +179,20 @@ public class Line {
                     (LineCorner.VertDirection(direction)) && IsVertical()) {
 
                 /* Get the direction from the given point to the line's corner */
-                Vector2 vectorDirection = LineCorner.DirectionToVector(direction);
+                Vector3 vectorDirection = LineCorner.DirectionToVector(direction);
 
                 /* Get the distance from the given point to both ends of the line */
-                float startDistance = Vector2.Scale((start - givenPositon), vectorDirection).x + Vector2.Scale((start - givenPositon), vectorDirection).y;
-                float endDistance = Vector2.Scale((end - givenPositon), vectorDirection).x + Vector2.Scale((end - givenPositon), vectorDirection).y;
+                float startDistance = Vector3.Scale((start - givenPositon), vectorDirection).x + Vector3.Scale((start - givenPositon), vectorDirection).y;
+                float endDistance = Vector3.Scale((end - givenPositon), vectorDirection).x + Vector3.Scale((end - givenPositon), vectorDirection).y;
 
                 /* Set the distance to the largest distance (only one is positive) */
                 distance = Mathf.Max(startDistance, endDistance);
             }
 
-            /* The given direction perpendicular to the line */
+            /* The given direction is perpendicular to the line */
             else {
                 distance = 0;
+                Debug.Log("WARNING: A given direction does not follow the line");
             }
 
         }

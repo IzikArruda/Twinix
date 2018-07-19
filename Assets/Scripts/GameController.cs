@@ -190,82 +190,33 @@ public class GameController {
 
         for(int i = 0; i < players.Length; i++) {
 
-
-
-
-
-
+            
             /* Move the player up their line */
             //Pressing up will cause this order:
             //1. Check how much distance is between the players current position and the corner up the line
             //IDEA: Get a function for a line which returns the distance from the given position towards a given direction until it hits a corner
             //thius function can be used to help with recursive calls once we hit a corner
-
-            //Check if the player is on their line
-            if(i == 0) {
-                if(players[i].currentLine.IsPointOnLine(players[i].gamePosition)) {
-                    Debug.Log("Player is on the line");
-                }
-                else {
-                    Debug.Log("Player is off the line");
-                }
-
-                //Print the distance that the player is from the top side
-                Debug.Log(players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Up));
-            }
+            
 
 
 
 
 
-            Vector3 movement = Vector2.zero;
-            float distance = 0;
-            /* Move the player up */
-            if(players[i].controls.up) {
-                /* Get the distance the player can travel this frame */
-                distance = Mathf.Min(players[i].defaultMovementSpeed, players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Up));
+            
+            /*
+                * Check the player's inputs and send a request to move the player
+                */
+            /* Get the distance and direction the player will travel */
+            float travelDistance = players[i].defaultMovementSpeed*Time.deltaTime;
+            OrthogonalDirection playerMovementDirection = OrthogonalDirection.NULL;
+            playerMovementDirection = players[i].GetInputDirection();
+                
+            /* The player has given a direction to move towards */
+            if(playerMovementDirection != OrthogonalDirection.NULL) {
 
-                /* Get the direction the player will travel */
-                movement = LineCorner.DirectionToVector(OrthogonalDirection.Up);
-
-                /* Apply the movement to the player's position */
-                players[i].SetPlayerPosition(players[i].gamePosition + movement*distance);
-            }
-
-            /* Move the player right */
-            if(players[i].controls.right) {
-                /* Get the distance the player can travel this frame */
-                distance = Mathf.Min(players[i].defaultMovementSpeed, players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Right));
-
-                /* Get the direction the player will travel */
-                movement = LineCorner.DirectionToVector(OrthogonalDirection.Right);
-
-                /* Apply the movement to the player's position */
-                players[i].SetPlayerPosition(players[i].gamePosition + movement*distance);
-            }
-
-            /* Move the player down */
-            if(players[i].controls.down) {
-                /* Get the distance the player can travel this frame */
-                distance = Mathf.Min(players[i].defaultMovementSpeed, players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Down));
-
-                /* Get the direction the player will travel */
-                movement = LineCorner.DirectionToVector(OrthogonalDirection.Down);
-
-                /* Apply the movement to the player's position */
-                players[i].SetPlayerPosition(players[i].gamePosition + movement*distance);
-            }
-
-            /* Move the player left */
-            if(players[i].controls.left) {
-                /* Get the distance the player can travel this frame */
-                distance = Mathf.Min(players[i].defaultMovementSpeed, players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Left));
-
-                /* Get the direction the player will travel */
-                movement = LineCorner.DirectionToVector(OrthogonalDirection.Left);
-
-                /* Apply the movement to the player's position */
-                players[i].SetPlayerPosition(players[i].gamePosition + movement*distance);
+                /* Request the player to commit to the given movement */
+                players[i].MovePlayerRequest(playerMovementDirection, ref travelDistance);
+                //Debug.Log("remaining distance: " + travelDistance);
             }
         }
     }
@@ -275,13 +226,13 @@ public class GameController {
 
     #region Helper Functions  --------------------------------------------------------- */
 
-    public Vector2 GameToScreenPos(Vector2 gamePosition) {
+    public Vector3 GameToScreenPos(Vector3 gamePosition) {
         /*
          * Given a position in the game area, return a vector of it converted
          * to the proper position for the screen relative to the render method.
          */
-        Vector2 screenPos = Vector2.zero;
-        Vector2 centerOffset = Vector2.zero;
+        Vector3 screenPos = Vector3.zero;
+        Vector3 centerOffset = Vector3.zero;
         float heightRatio = 1;
         float widthRatio = 1;
         
@@ -291,20 +242,20 @@ public class GameController {
         
         /* Don't adjust the size of the line, just set the offset to center it */
         if(windowController.currentResolutionMode == ResolutionMode.True) {
-            centerOffset = new Vector2(gameAreaX/2f, gameAreaY/2f);
+            centerOffset = new Vector3(gameAreaX/2f, gameAreaY/2f);
         }
         /* Call for the line to stretch it's size relative to the screen's width and height */
         else if(windowController.currentResolutionMode == ResolutionMode.Stretch) {
             heightRatio = windowHeight/gameAreaY;
             widthRatio = windowWidth/gameAreaX;
-            centerOffset = new Vector2(widthRatio*gameAreaX/2f, heightRatio*gameAreaY/2f);
+            centerOffset = new Vector3(widthRatio*gameAreaX/2f, heightRatio*gameAreaY/2f);
         }
         /* Stretch to fit the screen while keeping the ratio intact */
         else if(windowController.currentResolutionMode == ResolutionMode.TrueRatioStretch) {
             float ratio = Mathf.Min(windowHeight/gameAreaY, windowWidth/gameAreaX);
             heightRatio = ratio;
             widthRatio = ratio;
-            centerOffset = new Vector2(ratio*gameAreaX/2f, ratio*gameAreaY/2f);
+            centerOffset = new Vector3(ratio*gameAreaX/2f, ratio*gameAreaY/2f);
         }
         /* Print an error if we are currently in a rendering mode not handled */
         else {
@@ -312,7 +263,7 @@ public class GameController {
         }
 
         /* Update the given game position to be a position relative to the screen */
-        screenPos = new Vector2(widthRatio*gamePosition.x, heightRatio*gamePosition.y) - centerOffset;
+        screenPos = new Vector3(widthRatio*gamePosition.x, heightRatio*gamePosition.y) - centerOffset;
 
         return screenPos;
     }

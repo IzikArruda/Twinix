@@ -38,7 +38,7 @@ public class Player {
         currentLine = null;
         controls = new PlayerControls();
         gamePosition = Vector3.zero;
-        defaultMovementSpeed = 1;
+        defaultMovementSpeed = 5;
 
         /* Create an object with a sprite renderer for the player */
         playerGameObject = new GameObject();
@@ -53,7 +53,7 @@ public class Player {
     #endregion
     
 
-    #region Setting Functions --------------------------------------------------------- */
+    #region Set Functions --------------------------------------------------------- */
 
     public void SetupControls(int playerNumber) {
         /*
@@ -128,4 +128,142 @@ public class Player {
     }
 
     #endregion
+
+
+    #region Get Functions --------------------------------------------------------- */
+
+    public LineCorner GetCorner() {
+        /*
+         * Return the corner the player is currently positioned on.
+         * Return null if they are not placed on a corner.
+         */
+        LineCorner currentCorner = null;
+
+        if(gamePosition.Equals(currentLine.startCorner.position)) {
+            currentCorner = currentLine.startCorner;
+        }
+        else if(gamePosition.Equals(currentLine.endCorner.position)) {
+            currentCorner = currentLine.endCorner;
+        }
+
+        return currentCorner;
+    }
+
+    public OrthogonalDirection GetInputDirection() {
+        /*
+         * Return the direction the user has inputted
+         */
+        OrthogonalDirection inputtedDirection = OrthogonalDirection.NULL;
+
+        if(controls.up) {
+            inputtedDirection = OrthogonalDirection.Up;
+        }
+        else if(controls.right) {
+            inputtedDirection = OrthogonalDirection.Right;
+        }
+        else if(controls.down) {
+            inputtedDirection = OrthogonalDirection.Down;
+        }
+        else if(controls.left) {
+            inputtedDirection = OrthogonalDirection.Left;
+        }
+
+        return inputtedDirection;
+    }
+
+    #endregion
+
+
+    #region Moving Functions --------------------------------------------------------- */
+
+    public void MovePlayerRequest(OrthogonalDirection direction, ref float distance) {
+        /*
+         * Move the player along their line in the given direction for up to the given distance or
+         * they reach a corner with no linked line in the given direction.
+         */
+         
+        /*
+         * Keep moving the player along the given direction until they run out of distance or are blocked
+         */
+        bool blocked = false;
+        while(distance > 0 && !blocked) {
+            
+            /* If the player is on a corner, change their current line realtive to their direction */
+            ChangeCurrentLine(direction);
+
+            /* The given direction is parallel to the current line */
+            if(LineCorner.HoriDirection(direction) && currentLine.IsHorizontal() ||
+                    LineCorner.VertDirection(direction) && currentLine.IsVertical()) {
+                
+                /* Move along the line in the given direction */
+                MoveTowardsCorner(direction, ref distance);
+
+                /* We reached the upcomming corner if we still have distance to travel */
+                if(distance > 0) {
+
+                    /* Check if we can pass the corner */
+                    if(GetCorner().AttachedLineAt(direction) != null) {
+                        //We can move onto the next line, ie repeat the loop
+                    }
+                    else {
+                        //The corner ends here - the player cannot leave the line
+                        blocked = true;
+                        //Debug.Log("CANT LEAVE LINE");
+                    }
+                }
+            }
+            /* The given direction is perpendicular - the player cannot leave the line */
+            else {
+                //Cant leave the line
+                blocked = true;
+                //Debug.Log("CANT LEAVE LINE");
+            }
+        }
+    }
+
+    private void MoveTowardsCorner(OrthogonalDirection direction, ref float distance) {
+        /*
+         * Move the player towards the corner of their current line in the given direction.
+         * Only travel for up to the given amount of distance along the line.
+         */
+        float toCornerDistance = Mathf.Min(currentLine.DistanceToCornerFrom(gamePosition, direction), distance);
+
+        /* Move the player and reduce the remaining distance */
+        if(toCornerDistance > 0) {
+            MovePlayer(direction, toCornerDistance);
+            distance -= toCornerDistance;
+        }
+    }
+
+    private void MovePlayer(OrthogonalDirection direction, float distance) {
+        /*
+         * Move the player's game position along the given direction for the given distance
+         */
+
+        gamePosition += (Vector3) LineCorner.DirectionToVector(direction)*distance;
+    }
+
+    private void ChangeCurrentLine(OrthogonalDirection direction) {
+        /*
+         * If the player is on the corner of their current line, change their current line
+         * to the line connected to said corner's given direction.
+         */
+        LineCorner currentCorner = GetCorner();
+
+        /* Make sure we are on a corner first */
+        if(currentCorner != null) {
+
+            /* Get the line attached onto the given direction */
+            Line newLine = currentCorner.AttachedLineAt(direction);
+
+            /* Assign the new current line to the player if it exists */
+            if(newLine != null && newLine != currentLine) {
+                Debug.Log("CHANGED CURRENT LINE");
+                currentLine = newLine;
+            }
+        }
+    }
+
+    #endregion
+    
 }
