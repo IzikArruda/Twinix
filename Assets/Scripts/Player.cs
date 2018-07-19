@@ -21,6 +21,9 @@ public class Player {
     public GameObject playerGameObject;
     public SpriteRenderer spriteRenderer;
 
+    /* How many pixels the player can move in 1 second */
+    public float defaultMovementSpeed;
+
     #endregion
 
 
@@ -35,6 +38,7 @@ public class Player {
         currentLine = null;
         controls = new PlayerControls();
         gamePosition = Vector3.zero;
+        defaultMovementSpeed = 1;
 
         /* Create an object with a sprite renderer for the player */
         playerGameObject = new GameObject();

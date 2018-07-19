@@ -160,14 +160,45 @@ public class Line {
 
     #region Helper Functions  --------------------------------------------------------- */
 
-    public void DistanceToCornerFrom(Vector3 givenPositon, OrthogonalDirection direction) {
+    public float DistanceToCornerFrom(Vector2 givenPositon, OrthogonalDirection direction) {
         /*
          * Return the amount of in-game distance from the given point along 
          * the line towards the given direction until it reaches the corner of the line.
          * 
          * If the given point is not on the line or the direction does not follow it, print an error.
          */
-         
+        float distance = 0;
+
+        /* Check if the given position is even on the line */
+        if(IsPointOnLine(givenPositon)) {
+
+            /* The given direction is parralel to the line */
+            if((LineCorner.HoriDirection(direction) && IsHorizontal()) || 
+                    (LineCorner.VertDirection(direction)) && IsVertical()) {
+
+                /* Get the direction from the given point to the line's corner */
+                Vector2 vectorDirection = LineCorner.DirectionToVector(direction);
+
+                /* Get the distance from the given point to both ends of the line */
+                float startDistance = Vector2.Scale((start - givenPositon), vectorDirection).x + Vector2.Scale((start - givenPositon), vectorDirection).y;
+                float endDistance = Vector2.Scale((end - givenPositon), vectorDirection).x + Vector2.Scale((end - givenPositon), vectorDirection).y;
+
+                /* Set the distance to the largest distance (only one is positive) */
+                distance = Mathf.Max(startDistance, endDistance);
+            }
+
+            /* The given direction perpendicular to the line */
+            else {
+                distance = 0;
+            }
+
+        }
+        else {
+            distance = 0;
+            Debug.Log("WARNING: A given position is not on a line");
+        }
+
+        return distance;
     }
 
     public bool IsHorizontal() {
@@ -178,12 +209,30 @@ public class Line {
         return (start.y == end.y);
     }
 
+    public bool IsBackwardsHorizontal() {
+        /*
+         * Check if the line is horizontally backwards, ie the start point's
+         * x position is behind the end point's x position.
+         */
+
+        return (start.x < end.x);
+    }
+
     public bool IsVertical() {
         /*
          * Return true if the line is completely vertical
          */
 
         return (start.x == end.x);
+    }
+
+    public bool IsBackwardsVertical() {
+        /*
+         * Check if the line is vertically backwards, ie the start point's 
+         * y position is bellow the end point's y position
+         */
+
+        return (start.y < end.y);
     }
 
     public bool IsPointOnLine(Vector3 point) {
@@ -195,7 +244,7 @@ public class Line {
 
         if(IsHorizontal()) {
             if(point.y == start.y) {
-                lineFlipped = start.x < end.x;
+                lineFlipped = IsBackwardsHorizontal();
                 if(point.x >= (lineFlipped ? start.x : end.x) && point.x <= (lineFlipped ? end.x : start.x)) {
                     onLine = true;
                 }
@@ -211,7 +260,7 @@ public class Line {
 
         else if(IsVertical()) {
             if(point.x == start.x) {
-                lineFlipped = start.y < end.y;
+                lineFlipped = IsBackwardsVertical();
                 if(point.y >= (lineFlipped ? start.y : end.y) && point.y <= (lineFlipped ? end.y : start.y)) {
                     onLine = true;
                 }

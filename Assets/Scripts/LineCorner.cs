@@ -11,6 +11,8 @@ public enum OrthogonalDirection {
     Right,
     Down,
     Left
+
+    //get if its horizontal
 };
 
 /*
@@ -157,6 +159,44 @@ public class LineCorner {
         }
         
         return orthogonalDirection;
+    }
+
+    static public bool HoriDirection(OrthogonalDirection direction) {
+        /*
+         * Return true if the given direction is horizontal (left, right)
+         */
+
+        return (direction == OrthogonalDirection.Left || direction == OrthogonalDirection.Right);
+    }
+
+    static public bool VertDirection(OrthogonalDirection direction) {
+        /*
+         * Return true if the given direction is vertical (up, down)
+         */
+
+        return (direction == OrthogonalDirection.Up || direction == OrthogonalDirection.Down);
+    }
+
+    static public Vector2 DirectionToVector(OrthogonalDirection direction) {
+        /*
+         * Convert the given orthogonal direction to it's Vector equivalent
+         */
+        Vector2 directionVector = new Vector2(0, 0);
+
+        if(direction == OrthogonalDirection.Up) {
+            directionVector = Vector2.up;
+        }
+        else if(direction == OrthogonalDirection.Right) {
+            directionVector = Vector2.right;
+        }
+        else if(direction == OrthogonalDirection.Down) {
+            directionVector = Vector2.down;
+        }
+        else if(direction == OrthogonalDirection.Left) {
+            directionVector = Vector2.left;
+        }
+
+        return directionVector;
     }
 
     #endregion

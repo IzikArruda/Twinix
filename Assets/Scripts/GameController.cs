@@ -189,19 +189,6 @@ public class GameController {
          */
 
         for(int i = 0; i < players.Length; i++) {
-            if(players[i].controls.up) {
-                players[i].gamePosition += Vector3.up;
-            }
-            if(players[i].controls.right) {
-                players[i].gamePosition += Vector3.right;
-            }
-            if(players[i].controls.down) {
-                players[i].gamePosition += Vector3.down;
-            }
-            if(players[i].controls.left) {
-                players[i].gamePosition += Vector3.left;
-            }
-
 
 
 
@@ -222,10 +209,64 @@ public class GameController {
                 else {
                     Debug.Log("Player is off the line");
                 }
+
+                //Print the distance that the player is from the top side
+                Debug.Log(players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Up));
             }
 
 
 
+
+
+            Vector3 movement = Vector2.zero;
+            float distance = 0;
+            /* Move the player up */
+            if(players[i].controls.up) {
+                /* Get the distance the player can travel this frame */
+                distance = Mathf.Min(players[i].defaultMovementSpeed, players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Up));
+
+                /* Get the direction the player will travel */
+                movement = LineCorner.DirectionToVector(OrthogonalDirection.Up);
+
+                /* Apply the movement to the player's position */
+                players[i].SetPlayerPosition(players[i].gamePosition + movement*distance);
+            }
+
+            /* Move the player right */
+            if(players[i].controls.right) {
+                /* Get the distance the player can travel this frame */
+                distance = Mathf.Min(players[i].defaultMovementSpeed, players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Right));
+
+                /* Get the direction the player will travel */
+                movement = LineCorner.DirectionToVector(OrthogonalDirection.Right);
+
+                /* Apply the movement to the player's position */
+                players[i].SetPlayerPosition(players[i].gamePosition + movement*distance);
+            }
+
+            /* Move the player down */
+            if(players[i].controls.down) {
+                /* Get the distance the player can travel this frame */
+                distance = Mathf.Min(players[i].defaultMovementSpeed, players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Down));
+
+                /* Get the direction the player will travel */
+                movement = LineCorner.DirectionToVector(OrthogonalDirection.Down);
+
+                /* Apply the movement to the player's position */
+                players[i].SetPlayerPosition(players[i].gamePosition + movement*distance);
+            }
+
+            /* Move the player left */
+            if(players[i].controls.left) {
+                /* Get the distance the player can travel this frame */
+                distance = Mathf.Min(players[i].defaultMovementSpeed, players[i].currentLine.DistanceToCornerFrom(players[i].gamePosition, OrthogonalDirection.Left));
+
+                /* Get the direction the player will travel */
+                movement = LineCorner.DirectionToVector(OrthogonalDirection.Left);
+
+                /* Apply the movement to the player's position */
+                players[i].SetPlayerPosition(players[i].gamePosition + movement*distance);
+            }
         }
     }
 
