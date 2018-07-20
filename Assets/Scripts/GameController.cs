@@ -204,18 +204,20 @@ public class GameController {
 
             
             /*
-                * Check the player's inputs and send a request to move the player
-                */
-            /* Get the distance and direction the player will travel */
+             * Check the player's inputs and send a request to move the player
+             */
+            /* Get the amount of distance the player will travel */
             float travelDistance = players[i].defaultMovementSpeed*Time.deltaTime;
-            OrthogonalDirection playerMovementDirection = OrthogonalDirection.NULL;
-            playerMovementDirection = players[i].GetInputDirection();
-                
-            /* The player has given a direction to move towards */
-            if(playerMovementDirection != OrthogonalDirection.NULL) {
+
+            /* Get the two directions the player has as inputs */
+            OrthogonalDirection primaryDirection = players[i].controls.GetPrimaryInput();
+            OrthogonalDirection secondairyDirection = players[i].controls.GetSecondairyInput();
+
+            /* The player has given a direction and a distance */
+            if((primaryDirection != OrthogonalDirection.NULL || secondairyDirection != OrthogonalDirection.NULL) && travelDistance > 0) {
 
                 /* Request the player to commit to the given movement */
-                players[i].MovePlayerRequest(playerMovementDirection, ref travelDistance);
+                players[i].MovePlayerRequest(primaryDirection, secondairyDirection, ref travelDistance);
                 //Debug.Log("remaining distance: " + travelDistance);
             }
         }

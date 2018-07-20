@@ -149,48 +149,35 @@ public class Player {
         return currentCorner;
     }
 
-    public OrthogonalDirection GetInputDirection() {
-        /*
-         * Return the direction the user has inputted
-         */
-        OrthogonalDirection inputtedDirection = OrthogonalDirection.NULL;
-
-        if(controls.up) {
-            inputtedDirection = OrthogonalDirection.Up;
-        }
-        else if(controls.right) {
-            inputtedDirection = OrthogonalDirection.Right;
-        }
-        else if(controls.down) {
-            inputtedDirection = OrthogonalDirection.Down;
-        }
-        else if(controls.left) {
-            inputtedDirection = OrthogonalDirection.Left;
-        }
-
-        return inputtedDirection;
-    }
-
     #endregion
 
 
     #region Moving Functions --------------------------------------------------------- */
 
-    public void MovePlayerRequest(OrthogonalDirection direction, ref float distance) {
+    public void MovePlayerRequest(OrthogonalDirection dir1, OrthogonalDirection dir2, ref float distance) {
         /*
          * Move the player along their line in the given direction for up to the given distance or
          * they reach a corner with no linked line in the given direction.
          */
-         
+        OrthogonalDirection direction = OrthogonalDirection.NULL;
+
         /*
          * Keep moving the player along the given direction until they run out of distance or are blocked
          */
         bool blocked = false;
         while(distance > 0 && !blocked) {
             
-            /* If the player is on a corner, change their current line realtive to their direction */
-            ChangeCurrentLine(direction);
+            /* If the player is on a corner, change their current line relative to their direction */
+            ChangeCurrentLine(dir1, dir2);
 
+            /* Get the direction that is parallel to the current line */
+            if(currentLine.IsHorizontal()) {
+                direction = Line.ReturnHorizontalDirection(dir1, dir2);
+            }
+            else if(currentLine.IsVertical()) {
+                direction = Line.ReturnVerticalDirection(dir1, dir2);
+            }
+            
             /* The given direction is parallel to the current line */
             if(LineCorner.HoriDirection(direction) && currentLine.IsHorizontal() ||
                     LineCorner.VertDirection(direction) && currentLine.IsVertical()) {
@@ -200,9 +187,9 @@ public class Player {
 
                 /* We reached the upcomming corner if we still have distance to travel */
                 if(distance > 0) {
-
-                    /* Check if we can pass the corner */
-                    if(GetCorner().AttachedLineAt(direction) != null) {
+                    
+                    /* Check if either given directions will let the player pass the corner */
+                    if(GetCorner().AttachedLineAt(dir1) != null || GetCorner().AttachedLineAt(dir2) != null) {
                         //We can move onto the next line, ie repeat the loop
                     }
                     else {
@@ -243,24 +230,72 @@ public class Player {
         gamePosition += (Vector3) LineCorner.DirectionToVector(direction)*distance;
     }
 
-    private void ChangeCurrentLine(OrthogonalDirection direction) {
+    private void ChangeCurrentLine(OrthogonalDirection dir1, OrthogonalDirection dir2) {
         /*
          * If the player is on the corner of their current line, change their current line
-         * to the line connected to said corner's given direction.
+         * to one of the lines connected to the corner they are currently on.
+         * 
+         * The line they will switch to is determined by the given inputs and the direction
+         * of their current line (if they have given two inputs).
+         * 
+         * When on a corner and holding two sepperate axis as inputs, the player will swap
+         * to the line perpendicular to their current line. This is shown in the example bellow:
+         * 
+         * When moving up towards a 4 way corner and holding up+right, the player, once reaching
+         * the corner, will swap to the corner's right line. This is because if the player
+         * wanted to not take the turn and continue upwards, they would have only held the up key.
          */
         LineCorner currentCorner = GetCorner();
+        OrthogonalDirection primaryDirection = dir1;
+        OrthogonalDirection secondairyDirection = dir2;
 
         /* Make sure we are on a corner first */
         if(currentCorner != null) {
+            
+            /* Properly order the inputs if we are given two unique directions */
+            if(dir1 != OrthogonalDirection.NULL && dir2 != OrthogonalDirection.NULL) {
+                /* Current line is horizontal. */
+                if(currentLine.IsHorizontal()) {
+                    /* If the primary direction is also horizontal... */
+                    if(LineCorner.HoriDirection(primaryDirection)) {
+                        /* ...Swap it so the primary direction is now vertical */
+                        primaryDirection = dir2;
+                        secondairyDirection = dir1;
+                    }
+                }
 
-            /* Get the line attached onto the given direction */
-            Line newLine = currentCorner.AttachedLineAt(direction);
-
-            /* Assign the new current line to the player if it exists */
-            if(newLine != null && newLine != currentLine) {
-                Debug.Log("CHANGED CURRENT LINE");
-                currentLine = newLine;
+                /* Current line is vertical. */
+                else if(currentLine.IsVertical()) {
+                    /* If the primary direction is also vertical... */
+                    if(LineCorner.VertDirection(primaryDirection)) {
+                        /* ...Swap it so the primary direction is now horizontal */
+                        primaryDirection = dir2;
+                        secondairyDirection = dir1;
+                    }
+                }
             }
+
+
+            /* Swap to the line at the primary direction */
+            if(currentCorner.AttachedLineAt(primaryDirection) != null) {
+                ChangeCurrentLine(currentCorner.AttachedLineAt(primaryDirection));
+            }
+
+            /* Swap to the line at the secondairy direction if the primary is not connected */
+            else if(currentCorner.AttachedLineAt(secondairyDirection) != null) {
+                ChangeCurrentLine(currentCorner.AttachedLineAt(secondairyDirection));
+            }
+        }
+    }
+
+    private void ChangeCurrentLine(Line newLine) {
+        /*
+         * Change the player's current line to the given line
+         */
+
+        if(newLine != null && newLine != currentLine) {
+            Debug.Log("CHANGED CURRENT LINE");
+            currentLine = newLine;
         }
     }
 

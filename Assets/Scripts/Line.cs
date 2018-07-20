@@ -158,8 +158,6 @@ public class Line {
     #endregion
 
     
-
-
     #region Helper Functions  --------------------------------------------------------- */
 
     public float DistanceToCornerFrom(Vector3 givenPositon, OrthogonalDirection direction) {
@@ -281,6 +279,40 @@ public class Line {
         }
 
         return onLine;
+    }
+
+    public static OrthogonalDirection ReturnHorizontalDirection(OrthogonalDirection dir1, OrthogonalDirection dir2) {
+        /*
+         * Given two directions, return the direction that points in a horizontal direction.
+         * Return the NULL direction if neither of them are horizontal.
+         */
+        OrthogonalDirection horiDir = OrthogonalDirection.NULL;
+
+        if(LineCorner.HoriDirection(dir1)) {
+            horiDir = dir1;
+        }
+        else if(LineCorner.HoriDirection(dir2)) {
+            horiDir = dir2;
+        }
+
+        return horiDir;
+    }
+
+    public static OrthogonalDirection ReturnVerticalDirection(OrthogonalDirection dir1, OrthogonalDirection dir2) {
+        /*
+         * Given two directions, return the direction that points in a vertical direction.
+         * Return the NULL direction if neither of them are vertical.
+         */
+        OrthogonalDirection vertDir = OrthogonalDirection.NULL;
+
+        if(LineCorner.VertDirection(dir1)) {
+            vertDir = dir1;
+        }
+        else if(LineCorner.VertDirection(dir2)) {
+            vertDir = dir2;
+        }
+
+        return vertDir;
     }
 
     #endregion
