@@ -183,11 +183,17 @@ public class Player {
             if(LineCorner.HoriDirection(direction) && currentLine.IsHorizontal() ||
                     LineCorner.VertDirection(direction) && currentLine.IsVertical()) {
                 
-                /* Move along the line in the given direction */
-                MoveTowardsCorner(direction, ref distance);
+                /* Scan ahead from the player's position to see how far the player is allowed to travel */
+                float travelDistance = distance;
+                blocked = currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance);
 
-                /* We reached the upcomming corner if we still have distance to travel */
-                if(distance > 0) {
+                /* Move the player by the amount of distance to travel and update the remaining distance */
+                MovePlayer(direction, travelDistance);
+                distance -= travelDistance;
+                
+                
+                /* We reached a corner if we still have distance to travel and are not blocked */
+                if(distance > 0 && !blocked) {
                     
                     /* Check if either given directions will let the player pass the corner */
                     if(GetCorner().AttachedLineAt(dir1) != null || GetCorner().AttachedLineAt(dir2) != null) {
@@ -209,26 +215,12 @@ public class Player {
         }
     }
 
-    private void MoveTowardsCorner(OrthogonalDirection direction, ref float distance) {
-        /*
-         * Move the player towards the corner of their current line in the given direction.
-         * Only travel for up to the given amount of distance along the line.
-         */
-        float toCornerDistance = Mathf.Min(currentLine.DistanceToCornerFrom(gamePosition, direction, this), distance);
-
-        /* Move the player and reduce the remaining distance */
-        if(toCornerDistance > 0) {
-            MovePlayer(direction, toCornerDistance);
-            distance -= toCornerDistance;
-        }
-    }
-
     private void MovePlayer(OrthogonalDirection direction, float distance) {
         /*
          * Move the player's game position along the given direction for the given distance
          */
 
-        gamePosition += (Vector3) LineCorner.DirectionToVector(direction)*distance;
+        gamePosition += LineCorner.DirectionToVector(direction)*distance;
     }
 
     private void ChangeCurrentLine(OrthogonalDirection dir1, OrthogonalDirection dir2) {

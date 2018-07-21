@@ -161,7 +161,12 @@ public class GameController {
 
         /* Place the players onto their edges */
         for(int i = 0; i < players.Length; i++) {
-            players[i].SetStartingLine(edges[10], 0.5f);
+            if(i == 0) {
+                players[i].SetStartingLine(edges[9], 0.5f);
+            }
+            else {
+                players[i].SetStartingLine(edges[10], 0.5f);
+            }
         }
 
         /* Give the lineDrawer the new edges and corners of the game area */

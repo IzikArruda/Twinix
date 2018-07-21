@@ -188,100 +188,77 @@ public class Line {
 
     #region Helper Functions  --------------------------------------------------------- */
 
-    public float DistanceToCornerFrom(Vector3 givenPositon, OrthogonalDirection direction, Player player) {
+    public bool PredeterminePlayerMovement(Player player, Vector3 givenPositon, OrthogonalDirection direction, ref float distance) {
         /*
-         * Return the amount of in-game distance from the given point along 
-         * the line towards the given direction until it reaches the corner of the line.
+         * Given a point, a direction, and a distance, travel along the current line from the given
+         * point along the given direction for the given distance.
          * 
-         * If the given point is not on the line or the direction does not follow it, print an error.
+         * The given distance will be equal to how far the given position has reached. It will stop 
+         * when it encounters another player or the end of the line. By reaching another
+         * player, the returned boolean will be set to true.
          * 
-         * 
-         * 
-         * 
-         * Have this return true or false. If the distance ends up hitting a player before the corner,
-         * return false. If we use the IsPlayerNearby() function on the corner and we get
-         * a notice that a player is close to the corner, also return false (assuming the player reaches it)
+         * We know the given direction is parallel to the line's direction.
          */
-        float distance = 0;
+        bool playerBlocked = false;
+        Vector3 collisionPosition = Vector3.zero;
+        float playerSizeBuffer = 2f;
 
-        /* Check if the given position is even on the line */
-        if(IsPointOnLine(givenPositon)) {
+        /* Convert the given direction into a vector3 */
+        Vector3 vectorDirection = LineCorner.DirectionToVector(direction);
 
-            /* The given direction is parralel to the line */
-            if((LineCorner.HoriDirection(direction) && IsHorizontal()) || 
-                    (LineCorner.VertDirection(direction)) && IsVertical()) {
+        /* Get the distance needed to reach the corner */
+        float distanceToStart = Vector3.Scale((start - givenPositon), vectorDirection).x + Vector3.Scale((start - givenPositon), vectorDirection).y;
+        float distanceToEnd = Vector3.Scale((end - givenPositon), vectorDirection).x + Vector3.Scale((end - givenPositon), vectorDirection).y;
+        float distanceToCorner = Mathf.Max(distanceToStart, distanceToEnd);
 
-                /* Get the direction from the given point to the line's corner */
-                Vector3 vectorDirection = LineCorner.DirectionToVector(direction);
-                Vector3 cornerPosition = Vector3.zero;
-                Debug.Log(vectorDirection);
-                
-                /* Get the distance from the given point to both ends of the line */
-                float startDistance = Vector3.Scale((start - givenPositon), vectorDirection).x + Vector3.Scale((start - givenPositon), vectorDirection).y;
-                float endDistance = Vector3.Scale((end - givenPositon), vectorDirection).x + Vector3.Scale((end - givenPositon), vectorDirection).y;
+        /* Use the smaller distance between the given distance and the distance to the corner */
+        distance = Mathf.Min(distance, distanceToCorner);
+        
+        /* Check if there is a player between the given position and the buffered distance */
+        collisionPosition = CheckIfPlayerWithinRange(givenPositon, givenPositon + vectorDirection*(distance + playerSizeBuffer), player, ref playerBlocked);
 
-                /* Set the distance to the largest distance (only one is positive) */
-                distance = Mathf.Max(startDistance, endDistance);
-
-
-
-                /*
-                 * 
-                 * Check if the player may collide with another player
-                 * 
-                 */
-                //If the distance to the start point is positive, then we are heading towards the start corner
-                if(startDistance > 0) {
-                    //Check if a person is between the given point and the start corner
-                    CheckIfPlayerStart(givenPositon, player, true);
-                }
-
-                else if(endDistance > 0){
-                    //Check if a person is between the given point and the end corner
-                    CheckIfPlayerStart(givenPositon, player, false);
-                }
-            }
-
-            /* The given direction is perpendicular to the line */
-            else {
-                distance = 0;
-                Debug.Log("WARNING: A given direction does not follow the line");
-            }
-
+        /* If there was a collision, update the distance to reflect the distance to the collision */
+        if(playerBlocked) {
+            distance = (givenPositon - collisionPosition).magnitude;
+            /* Remove the buffer from the distance travelled. Do not let the distance reach bellow 0 */
+            distance = Mathf.Max(distance - playerSizeBuffer, 0);
         }
+
+        /* There was no collision meet on this */
         else {
-            distance = 0;
-            Debug.Log("WARNING: A given position is not on a line");
+            /* If we have not yet collided with a player AND the distance reaches the corner,
+             * Check the attachedLines of the corner to see if a player is close by */
+            if(!playerBlocked && distance > distanceToCorner) {
+                //Scan the corner's attachedLines to see if a player connects
+            }
         }
 
-        return distance;
+        return playerBlocked;
     }
-
-    private void CheckIfPlayerStart(Vector3 position, Player player, bool useStartCorner) {
+    
+    private Vector3 CheckIfPlayerWithinRange(Vector3 position1, Vector3 position2, Player player, ref bool playerCollided) {
         /*
-         * Check if there is a player between the given position and the given corner.
-         * If useStartCorner is true, then use the start corner. Else, use the end corner.
+         * Check if there is a player between the two given positions.
+         * If there is a player within the range, change the given boolean.
+         * Return the position of where the collision occured.
          */
-        Vector3 cornerPosition = startCorner.position;
         float minRange = 0, maxRange = 0, playerPos = 0;
-        if(!useStartCorner) {
-            cornerPosition = endCorner.position;
-        }
+        Vector3 collisionPosition = Vector3.zero;
 
-        /* Calculate the range between the start and corner position */
+        /* Calculate the proper min and max ranges of the two positions */
         if(IsHorizontal()) {
-            minRange = Mathf.Min(position.x, cornerPosition.x);
-            maxRange = Mathf.Max(position.x, cornerPosition.x);
+            minRange = Mathf.Min(position1.x, position2.x);
+            maxRange = Mathf.Max(position1.x, position2.x);
         }
         else if(IsVertical()) {
-            minRange = Mathf.Min(position.y, cornerPosition.y);
-            maxRange = Mathf.Max(position.y, cornerPosition.y);
+            minRange = Mathf.Min(position1.y, position2.y);
+            maxRange = Mathf.Max(position1.y, position2.y);
         }
 
         for(int i = 0; i < linkedPlayers.Count; i++) {
 
-            /* Ignore the given player */
-            if(!linkedPlayers[i].Equals(player)) {
+            /* Ignore the player if they are at the same position as the given player */
+            if(!linkedPlayers[i].gamePosition.Equals(player.gamePosition)) {
 
                 /* Get the player's position */
                 if(IsHorizontal()) {
@@ -291,12 +268,16 @@ public class Line {
                     playerPos = linkedPlayers[i].gamePosition.y;
                 }
 
-                /* Check if the player's position is within the range (exclusive) */
-                if(playerPos > minRange && playerPos < maxRange) {
+                /* Check if the player's position is within the range (inclusive. The players will get stuck if inside eachother) */
+                if(playerPos >= minRange && playerPos <= maxRange) {
                     Debug.Log("OTHER PLAYER IS BLOCKING");
+                    collisionPosition = linkedPlayers[i].gamePosition;
+                    playerCollided = true;
                 }
             }
         }
+
+        return collisionPosition;
     }
 
     public bool IsHorizontal() {
@@ -306,16 +287,7 @@ public class Line {
 
         return (start.y == end.y);
     }
-
-    public bool IsBackwardsHorizontal() {
-        /*
-         * Check if the line is horizontally backwards, ie the start point's
-         * x position is behind the end point's x position.
-         */
-
-        return (start.x < end.x);
-    }
-
+    
     public bool IsVertical() {
         /*
          * Return true if the line is completely vertical
@@ -323,61 +295,7 @@ public class Line {
 
         return (start.x == end.x);
     }
-
-    public bool IsBackwardsVertical() {
-        /*
-         * Check if the line is vertically backwards, ie the start point's 
-         * y position is bellow the end point's y position
-         */
-
-        return (start.y < end.y);
-    }
-
-    public bool IsPointOnLine(Vector3 point) {
-        /*
-         * Return true if the given point is on this line
-         */
-        bool onLine = false;
-        bool lineFlipped = false;
-
-        if(IsHorizontal()) {
-            if(point.y == start.y) {
-                lineFlipped = IsBackwardsHorizontal();
-                if(point.x >= (lineFlipped ? start.x : end.x) && point.x <= (lineFlipped ? end.x : start.x)) {
-                    onLine = true;
-                }
-
-                else {
-                    //The point is not within the start or end points
-                }
-            }
-            else {
-                //Point is not on the same horizontal axis
-            }
-        }
-
-        else if(IsVertical()) {
-            if(point.x == start.x) {
-                lineFlipped = IsBackwardsVertical();
-                if(point.y >= (lineFlipped ? start.y : end.y) && point.y <= (lineFlipped ? end.y : start.y)) {
-                    onLine = true;
-                }
-                else {
-                    //The point is not within the start or end points
-                }
-            }
-            else {
-                //Point is not on the same vertical axis
-            }
-        }
-
-        else {
-            Debug.Log("WARNING: Line is not vertical or horizontal");
-        }
-
-        return onLine;
-    }
-
+    
     public static OrthogonalDirection ReturnHorizontalDirection(OrthogonalDirection dir1, OrthogonalDirection dir2) {
         /*
          * Given two directions, return the direction that points in a horizontal direction.
