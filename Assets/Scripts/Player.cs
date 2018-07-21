@@ -98,9 +98,10 @@ public class Player {
          * with the given amount of distance from it's starting point.
          * Distance ranges from [0, 1].
          */
-
-        currentLine = startingLine;
+         
+        ChangeCurrentLine(startingLine);
         SetPlayerPosition(Vector3.Lerp(startingLine.start, startingLine.end, distance));
+
     }
 
     public void SetSpritesize(float spriteSize) {
@@ -213,7 +214,7 @@ public class Player {
          * Move the player towards the corner of their current line in the given direction.
          * Only travel for up to the given amount of distance along the line.
          */
-        float toCornerDistance = Mathf.Min(currentLine.DistanceToCornerFrom(gamePosition, direction), distance);
+        float toCornerDistance = Mathf.Min(currentLine.DistanceToCornerFrom(gamePosition, direction, this), distance);
 
         /* Move the player and reduce the remaining distance */
         if(toCornerDistance > 0) {
@@ -294,6 +295,17 @@ public class Player {
          */
 
         if(newLine != null && newLine != currentLine) {
+            
+            /* Un-link the player from their previous line */
+            if(currentLine != null) {
+                currentLine.UnlinkPlayer(this);
+            }
+
+            /* Link the player to their new line */
+            if(newLine != null) {
+                newLine.LinkPlayer(this);
+            }
+
             Debug.Log("CHANGED CURRENT LINE");
             currentLine = newLine;
         }

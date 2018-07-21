@@ -221,19 +221,6 @@ public class GameController {
          */
 
         for(int i = 0; i < players.Length; i++) {
-
-            
-            /* Move the player up their line */
-            //Pressing up will cause this order:
-            //1. Check how much distance is between the players current position and the corner up the line
-            //IDEA: Get a function for a line which returns the distance from the given position towards a given direction until it hits a corner
-            //thius function can be used to help with recursive calls once we hit a corner
-            
-
-
-
-
-
             
             /*
              * Check the player's inputs and send a request to move the player

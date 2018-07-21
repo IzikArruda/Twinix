@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 
 /*
@@ -18,6 +19,9 @@ public class Line {
     public Vector3[] vertices;
     public Mesh mesh;
 
+    /* The list of players that are currently linked to this line */
+    public List<Player> linkedPlayers;
+
     #endregion
 
 
@@ -33,6 +37,7 @@ public class Line {
         end = new Vector3(endX, endY);
         vertices = new Vector3[4];
         mesh = new Mesh();
+        linkedPlayers = new List<Player>();
     }
     
     #endregion
@@ -158,14 +163,44 @@ public class Line {
     #endregion
 
     
+    #region Linked Player Functions  --------------------------------------------------------- */
+
+    public void LinkPlayer(Player player) {
+        /*
+         * Add the given player to the currently linked players if they are not yet added
+         */
+         
+        if(!linkedPlayers.Contains(player)) {
+            linkedPlayers.Add(player);
+        }
+    }
+
+    public void UnlinkPlayer(Player player) {
+        /*
+         * Remove the linked player from the line's current linked player list
+         */
+         
+        linkedPlayers.Remove(player);
+    }
+
+    #endregion
+
+
     #region Helper Functions  --------------------------------------------------------- */
 
-    public float DistanceToCornerFrom(Vector3 givenPositon, OrthogonalDirection direction) {
+    public float DistanceToCornerFrom(Vector3 givenPositon, OrthogonalDirection direction, Player player) {
         /*
          * Return the amount of in-game distance from the given point along 
          * the line towards the given direction until it reaches the corner of the line.
          * 
          * If the given point is not on the line or the direction does not follow it, print an error.
+         * 
+         * 
+         * 
+         * 
+         * Have this return true or false. If the distance ends up hitting a player before the corner,
+         * return false. If we use the IsPlayerNearby() function on the corner and we get
+         * a notice that a player is close to the corner, also return false (assuming the player reaches it)
          */
         float distance = 0;
 
@@ -178,13 +213,33 @@ public class Line {
 
                 /* Get the direction from the given point to the line's corner */
                 Vector3 vectorDirection = LineCorner.DirectionToVector(direction);
-
+                Vector3 cornerPosition = Vector3.zero;
+                Debug.Log(vectorDirection);
+                
                 /* Get the distance from the given point to both ends of the line */
                 float startDistance = Vector3.Scale((start - givenPositon), vectorDirection).x + Vector3.Scale((start - givenPositon), vectorDirection).y;
                 float endDistance = Vector3.Scale((end - givenPositon), vectorDirection).x + Vector3.Scale((end - givenPositon), vectorDirection).y;
 
                 /* Set the distance to the largest distance (only one is positive) */
                 distance = Mathf.Max(startDistance, endDistance);
+
+
+
+                /*
+                 * 
+                 * Check if the player may collide with another player
+                 * 
+                 */
+                //If the distance to the start point is positive, then we are heading towards the start corner
+                if(startDistance > 0) {
+                    //Check if a person is between the given point and the start corner
+                    CheckIfPlayerStart(givenPositon, player, true);
+                }
+
+                else if(endDistance > 0){
+                    //Check if a person is between the given point and the end corner
+                    CheckIfPlayerStart(givenPositon, player, false);
+                }
             }
 
             /* The given direction is perpendicular to the line */
@@ -200,6 +255,48 @@ public class Line {
         }
 
         return distance;
+    }
+
+    private void CheckIfPlayerStart(Vector3 position, Player player, bool useStartCorner) {
+        /*
+         * Check if there is a player between the given position and the given corner.
+         * If useStartCorner is true, then use the start corner. Else, use the end corner.
+         */
+        Vector3 cornerPosition = startCorner.position;
+        float minRange = 0, maxRange = 0, playerPos = 0;
+        if(!useStartCorner) {
+            cornerPosition = endCorner.position;
+        }
+
+        /* Calculate the range between the start and corner position */
+        if(IsHorizontal()) {
+            minRange = Mathf.Min(position.x, cornerPosition.x);
+            maxRange = Mathf.Max(position.x, cornerPosition.x);
+        }
+        else if(IsVertical()) {
+            minRange = Mathf.Min(position.y, cornerPosition.y);
+            maxRange = Mathf.Max(position.y, cornerPosition.y);
+        }
+
+        for(int i = 0; i < linkedPlayers.Count; i++) {
+
+            /* Ignore the given player */
+            if(!linkedPlayers[i].Equals(player)) {
+
+                /* Get the player's position */
+                if(IsHorizontal()) {
+                    playerPos = linkedPlayers[i].gamePosition.x;
+                }
+                else if(IsVertical()) {
+                    playerPos = linkedPlayers[i].gamePosition.y;
+                }
+
+                /* Check if the player's position is within the range (exclusive) */
+                if(playerPos > minRange && playerPos < maxRange) {
+                    Debug.Log("OTHER PLAYER IS BLOCKING");
+                }
+            }
+        }
     }
 
     public bool IsHorizontal() {
