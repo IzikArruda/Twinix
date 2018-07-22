@@ -185,7 +185,7 @@ public class Player {
                 
                 /* Scan ahead from the player's position to see how far the player is allowed to travel */
                 float travelDistance = distance;
-                blocked = currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance);
+                blocked = currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance, true);
 
                 /* Move the player by the amount of distance to travel and update the remaining distance */
                 MovePlayer(direction, travelDistance);

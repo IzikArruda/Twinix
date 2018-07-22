@@ -220,6 +220,6 @@ public class LineCorner {
 
         return attachedLine;
     }
-
+    
     #endregion
 }

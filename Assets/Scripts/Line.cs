@@ -188,20 +188,24 @@ public class Line {
 
     #region Helper Functions  --------------------------------------------------------- */
 
-    public bool PredeterminePlayerMovement(Player player, Vector3 givenPositon, OrthogonalDirection direction, ref float distance) {
+    public bool PredeterminePlayerMovement(Player player, Vector3 givenPositon, OrthogonalDirection direction, ref float distance, bool applyPlayerSizeBuffer) {
         /*
          * Given a point, a direction, and a distance, travel along the current line from the given
-         * point along the given direction for the given distance.
+         * point along the given direction for the given distance. The given direction 
+         * will always be parallel to the line's direction.
          * 
          * The given distance will be equal to how far the given position has reached. It will stop 
          * when it encounters another player or the end of the line. By reaching another
          * player, the returned boolean will be set to true.
          * 
-         * We know the given direction is parallel to the line's direction.
+         * If the given boolean applyPlayerSizeBuffer is true, then add a preset playerSizeBuffer value
+         * to the given distance. This distance is not added when 
          */
         bool playerBlocked = false;
         Vector3 collisionPosition = Vector3.zero;
+        /* Remove the buffer distance if needed */
         float playerSizeBuffer = 2f;
+        if(!applyPlayerSizeBuffer) { playerSizeBuffer = 0; }
 
         /* Convert the given direction into a vector3 */
         Vector3 vectorDirection = LineCorner.DirectionToVector(direction);
@@ -228,8 +232,29 @@ public class Line {
         else {
             /* If we have not yet collided with a player AND the distance reaches the corner,
              * Check the attachedLines of the corner to see if a player is close by */
-            if(!playerBlocked && distance > distanceToCorner) {
-                //Scan the corner's attachedLines to see if a player connects
+            if(!playerBlocked && (distance + playerSizeBuffer) > distanceToCorner) {
+
+                /* Get the corner the player can reach */
+                LineCorner corner = GetCornerInGivenDirection(direction);
+                float pastCornerDistance = (distance + playerSizeBuffer) - distanceToCorner;
+                float tempDistance = pastCornerDistance;
+                Debug.Log("checking corners with a bonus distance of: " + pastCornerDistance);
+
+                /* Scan each line attached to the corner to see if there is a player in the way */
+                if(corner.up != null && !corner.up.Equals(this)) {
+                    Debug.Log("SCAN UP LINE");
+                    //If the given value is true, ie we hit a player, set playerBlocked to true
+                    //PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Up, ref tempDistance, false);
+                }
+                if(corner.right != null && !corner.right.Equals(this)) {
+                    Debug.Log("SCAN RIGHT LINE");
+                }
+                if(corner.down != null && !corner.down.Equals(this)) {
+                    Debug.Log("SCAN DOWN LINE");
+                }
+                if(corner.left != null && !corner.left.Equals(this)) {
+                    Debug.Log("SCAN LEFT LINE");
+                }
             }
         }
 
@@ -328,6 +353,63 @@ public class Line {
         }
 
         return vertDir;
+    }
+
+    public LineCorner GetCornerInGivenDirection(OrthogonalDirection direction) {
+        /*
+         * Return the corner that the given direction points to
+         */
+        LineCorner corner = null;
+
+        /* If the line is horizontal... */
+        if(IsHorizontal()) {
+            /* ... And we want the corner on the right... */
+            if(direction == OrthogonalDirection.Right) {
+                /* ... Return the corner with the larger x position */
+                if(startCorner.position.x > endCorner.position.x) {
+                    corner = startCorner;
+                }
+                else {
+                    corner = endCorner;
+                }
+            }
+            /* ... And we want the corner on the left... */
+            else if(direction == OrthogonalDirection.Left) {
+                /* ... Return the corner with the smaller x position */
+                if(startCorner.position.x < endCorner.position.x) {
+                    corner = startCorner;
+                }
+                else {
+                    corner = endCorner;
+                }
+            }
+        }
+
+        /* If the line is vertical... */
+        else if(IsVertical()) {
+            /* ... And we want the corner on the top... */
+            if(direction == OrthogonalDirection.Up) {
+                /* ... Return the corner with the larger y position */
+                if(startCorner.position.y > endCorner.position.y) {
+                    corner = startCorner;
+                }
+                else {
+                    corner = endCorner;
+                }
+            }
+            /* ... And we want the corner on the bottom... */
+            else if(direction == OrthogonalDirection.Down) {
+                /* ... Return the corner with the smaller y position */
+                if(startCorner.position.y < endCorner.position.y) {
+                    corner = startCorner;
+                }
+                else {
+                    corner = endCorner;
+                }
+            }
+        }
+
+        return corner;
     }
 
     #endregion
