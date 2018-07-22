@@ -194,7 +194,7 @@ public class Line {
          * point along the given direction for the given distance. The given direction 
          * will always be parallel to the line's direction.
          * 
-         * The given distance will be equal to how far the given position has reached. It will stop 
+         * The given distance will be equal to how far the given position can reach. It will stop 
          * when it encounters another player or the end of the line. By reaching another
          * player, the returned boolean will be set to true.
          * 
@@ -217,7 +217,7 @@ public class Line {
 
         /* Use the smaller distance between the given distance and the distance to the corner */
         distance = Mathf.Min(distance, distanceToCorner);
-        
+
         /* Check if there is a player between the given position and the buffered distance */
         collisionPosition = CheckIfPlayerWithinRange(givenPositon, givenPositon + vectorDirection*(distance + playerSizeBuffer), player, ref playerBlocked);
 
@@ -238,22 +238,37 @@ public class Line {
                 LineCorner corner = GetCornerInGivenDirection(direction);
                 float pastCornerDistance = (distance + playerSizeBuffer) - distanceToCorner;
                 float tempDistance = pastCornerDistance;
-                Debug.Log("checking corners with a bonus distance of: " + pastCornerDistance);
+                bool tempBool = false;
 
                 /* Scan each line attached to the corner to see if there is a player in the way */
                 if(corner.up != null && !corner.up.Equals(this)) {
-                    Debug.Log("SCAN UP LINE");
-                    //If the given value is true, ie we hit a player, set playerBlocked to true
-                    //PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Up, ref tempDistance, false);
+                    tempBool = corner.up.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Up, ref tempDistance, false);
+                    if(tempBool) {
+                        playerBlocked = true;
+                    }
                 }
                 if(corner.right != null && !corner.right.Equals(this)) {
-                    Debug.Log("SCAN RIGHT LINE");
+                    tempBool = corner.right.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Right, ref tempDistance, false);
+                    if(tempBool) {
+                        playerBlocked = true;
+                    }
                 }
                 if(corner.down != null && !corner.down.Equals(this)) {
-                    Debug.Log("SCAN DOWN LINE");
+                    tempBool = corner.down.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Down, ref tempDistance, false);
+                    if(tempBool) {
+                        playerBlocked = true;
+                    }
                 }
                 if(corner.left != null && !corner.left.Equals(this)) {
-                    Debug.Log("SCAN LEFT LINE");
+                    tempBool = corner.left.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Left, ref tempDistance, false);
+                    if(tempBool) {
+                        playerBlocked = true;
+                    }
+                }
+
+                /* We ran into a player and so need to reduce the given distance */
+                if(playerBlocked) {
+                    distance -= (pastCornerDistance - tempDistance);
                 }
             }
         }
@@ -295,7 +310,6 @@ public class Line {
 
                 /* Check if the player's position is within the range (inclusive. The players will get stuck if inside eachother) */
                 if(playerPos >= minRange && playerPos <= maxRange) {
-                    Debug.Log("OTHER PLAYER IS BLOCKING");
                     collisionPosition = linkedPlayers[i].gamePosition;
                     playerCollided = true;
                 }
