@@ -188,20 +188,19 @@ public class Line {
 
     #region Helper Functions  --------------------------------------------------------- */
 
-    public bool PredeterminePlayerMovement(Player player, Vector3 givenPositon, OrthogonalDirection direction, ref float distance, bool applyPlayerSizeBuffer) {
+    public void PredeterminePlayerMovement(Player player, Vector3 givenPositon, OrthogonalDirection direction, 
+            ref float currentDistanceTravelled, float maxtravelDistance, bool applyPlayerSizeBuffer, ref bool blocked) {
         /*
-         * Given a point, a direction, and a distance, travel along the current line from the given
-         * point along the given direction for the given distance. The given direction 
-         * will always be parallel to the line's direction.
+         * Travel along this line in the given direction from the given position for the given 
+         * maxTravelDistance. The given directioin is assumed to be parallel to the line.
          * 
-         * The given distance will be equal to how far the given position can reach. It will stop 
-         * when it encounters another player or the end of the line. By reaching another
-         * player, the returned boolean will be set to true.
+         * Set the blocked boolean to true if the path along the line collides with a player.
          * 
-         * If the given boolean applyPlayerSizeBuffer is true, then add a preset playerSizeBuffer value
-         * to the given distance. This distance is not added when 
+         * If we travel along the line and reach a corner, recursively call this function
+         * along each of the corner's attached lines.
+         * 
+         * currentDistanceTravelled is how much distance the player has travelled so far.
          */
-        bool playerBlocked = false;
         Vector3 collisionPosition = Vector3.zero;
         /* Remove the buffer distance if needed */
         float playerSizeBuffer = 2f;
@@ -215,65 +214,92 @@ public class Line {
         float distanceToEnd = Vector3.Scale((end - givenPositon), vectorDirection).x + Vector3.Scale((end - givenPositon), vectorDirection).y;
         float distanceToCorner = Mathf.Max(distanceToStart, distanceToEnd);
 
-        /* Use the smaller distance between the given distance and the distance to the corner */
-        distance = Mathf.Min(distance, distanceToCorner);
+        /* Use the smaller distance between the remaining distance and the distance to the corner */
+        float distanceOnCurrentLine = maxtravelDistance - currentDistanceTravelled;
 
-        /* Check if there is a player between the given position and the buffered distance */
-        collisionPosition = CheckIfPlayerWithinRange(givenPositon, givenPositon + vectorDirection*(distance + playerSizeBuffer), player, ref playerBlocked);
-
-        /* If there was a collision, update the distance to reflect the distance to the collision */
-        if(playerBlocked) {
-            distance = (givenPositon - collisionPosition).magnitude;
-            /* Remove the buffer from the distance travelled. Do not let the distance reach bellow 0 */
-            distance = Mathf.Max(distance - playerSizeBuffer, 0);
+        /* Prevent the player from moving past the corner if this is a non-recursive call */
+        if(applyPlayerSizeBuffer) {
+            distanceOnCurrentLine = Mathf.Min(maxtravelDistance - currentDistanceTravelled, distanceToCorner);
         }
 
-        /* There was no collision meet on this */
+        /* Check if there is a player between the given position and the buffered distance */
+        collisionPosition = CheckIfPlayerWithinRange(givenPositon, givenPositon + vectorDirection*(distanceOnCurrentLine + playerSizeBuffer), player, ref blocked);
+        
+        /* If there was a collision, update the distance to reflect the distance to the collision */
+        if(blocked) {
+            distanceOnCurrentLine = (givenPositon - collisionPosition).magnitude;
+            /* Remove the buffer from the distance travelled. Do not let the distance reach bellow 0 */
+            distanceOnCurrentLine = Mathf.Max(distanceOnCurrentLine - playerSizeBuffer, 0);
+            currentDistanceTravelled += distanceOnCurrentLine;
+        }
+
+        /* There was no collision meet along this path */
         else {
-            /* If we have not yet collided with a player AND the distance reaches the corner,
-             * Check the attachedLines of the corner to see if a player is close by */
-            if(!playerBlocked && (distance + playerSizeBuffer) > distanceToCorner) {
+            /* If we have reached past the corner, check it's attachedLines */
+            if((distanceOnCurrentLine + playerSizeBuffer) > distanceToCorner) {
 
                 /* Get the corner the player can reach */
                 LineCorner corner = GetCornerInGivenDirection(direction);
-                float pastCornerDistance = (distance + playerSizeBuffer) - distanceToCorner;
-                float tempDistance = pastCornerDistance;
-                bool tempBool = false;
+                float distancePastCorner = (distanceOnCurrentLine + playerSizeBuffer) - distanceToCorner;
+                float tempDistance = currentDistanceTravelled;
+                bool tempBlocked = false;
 
                 /* Scan each line attached to the corner to see if there is a player in the way */
                 if(corner.up != null && !corner.up.Equals(this)) {
-                    tempBool = corner.up.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Up, ref tempDistance, false);
-                    if(tempBool) {
-                        playerBlocked = true;
+                    tempBlocked = false;
+                    tempDistance = currentDistanceTravelled;
+                    corner.up.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Up,
+                        ref tempDistance, distancePastCorner, false, ref tempBlocked);
+                    if(tempBlocked) {
+                        blocked = true;
+                        if(distancePastCorner > tempDistance) { distancePastCorner = tempDistance; }
+                        Debug.Log("UP DIRECTION HIT PLAYER");
                     }
                 }
                 if(corner.right != null && !corner.right.Equals(this)) {
-                    tempBool = corner.right.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Right, ref tempDistance, false);
-                    if(tempBool) {
-                        playerBlocked = true;
+                    tempBlocked = false;
+                    tempDistance = currentDistanceTravelled;
+                    corner.right.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Right,
+                            ref tempDistance, distancePastCorner, false, ref tempBlocked);
+                    if(tempBlocked) {
+                        blocked = true;
+                        if(distancePastCorner > tempDistance) { distancePastCorner = tempDistance; }
+                        Debug.Log("RIGHT DIRECTION HIT PLAYER");
                     }
                 }
                 if(corner.down != null && !corner.down.Equals(this)) {
-                    tempBool = corner.down.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Down, ref tempDistance, false);
-                    if(tempBool) {
-                        playerBlocked = true;
+                    tempBlocked = false;
+                    tempDistance = currentDistanceTravelled;
+                    corner.down.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Down,
+                            ref tempDistance, distancePastCorner, false, ref tempBlocked);
+                    if(tempBlocked) {
+                        blocked = true;
+                        if(distancePastCorner > tempDistance) { distancePastCorner = tempDistance; }
+                        Debug.Log("DOWN DIRECTION HIT PLAYER");
                     }
                 }
                 if(corner.left != null && !corner.left.Equals(this)) {
-                    tempBool = corner.left.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Left, ref tempDistance, false);
-                    if(tempBool) {
-                        playerBlocked = true;
+                    tempBlocked = false;
+                    tempDistance = currentDistanceTravelled;
+                    corner.left.PredeterminePlayerMovement(player, corner.position, OrthogonalDirection.Left,
+                            ref tempDistance, distancePastCorner, false, ref tempBlocked);
+                    if(tempBlocked) {
+                        blocked = true;
+                        if(distancePastCorner > tempDistance) { distancePastCorner = tempDistance; }
+                        Debug.Log("LEFT DIRECTION HIT PLAYER");
                     }
                 }
 
                 /* We ran into a player and so need to reduce the given distance */
-                if(playerBlocked) {
-                    distance -= (pastCornerDistance - tempDistance);
+                if(blocked) {
+                    distanceOnCurrentLine -= playerSizeBuffer - distancePastCorner;
                 }
             }
-        }
 
-        return playerBlocked;
+            /* Update the travel distance to reflect how far along the line we travelled */
+            currentDistanceTravelled += distanceOnCurrentLine;
+            if(currentDistanceTravelled < 0) { currentDistanceTravelled = 0; }
+        }
     }
     
     private Vector3 CheckIfPlayerWithinRange(Vector3 position1, Vector3 position2, Player player, ref bool playerCollided) {

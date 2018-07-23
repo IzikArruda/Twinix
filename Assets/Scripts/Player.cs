@@ -182,10 +182,10 @@ public class Player {
             /* The given direction is parallel to the current line */
             if(LineCorner.HoriDirection(direction) && currentLine.IsHorizontal() ||
                     LineCorner.VertDirection(direction) && currentLine.IsVertical()) {
-                
+
                 /* Scan ahead from the player's position to see how far the player is allowed to travel */
-                float travelDistance = distance;
-                blocked = currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance, true);
+                float travelDistance = 0;
+                currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance, distance, true, ref blocked);
 
                 /* Move the player by the amount of distance to travel and update the remaining distance */
                 MovePlayer(direction, travelDistance);
