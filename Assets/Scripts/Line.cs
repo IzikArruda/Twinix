@@ -451,6 +451,34 @@ public class Line {
 
         return corner;
     }
+    
+    public bool IsDirectionParallel(OrthogonalDirection direction) {
+        /*
+         * Return whether the given direction is parallel to this line
+         */
+        bool parallel = false;
+
+        if(LineCorner.HoriDirection(direction) && IsHorizontal() ||
+                LineCorner.VertDirection(direction) && IsVertical()) {
+            parallel = true;
+        }
+
+        return parallel;
+    }
+
+    public bool IsDirectionPerpendicular(OrthogonalDirection direction) {
+        /*
+         * Return whether the given direction is perpendicular (true) to this line
+         */
+        bool perpendicular = false;
+
+        if(LineCorner.HoriDirection(direction) && IsVertical() ||
+                LineCorner.VertDirection(direction) && IsHorizontal()) {
+            perpendicular = true;
+        }
+
+        return perpendicular;
+    }
 
     #endregion
 }

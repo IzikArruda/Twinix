@@ -220,6 +220,54 @@ public class LineCorner {
 
         return attachedLine;
     }
-    
+
+    static public OrthogonalDirection NextDirection(OrthogonalDirection direction) {
+        /*
+         * Return the "next" direction in the sequence from the given direction.
+         */
+
+        if(direction == OrthogonalDirection.Up) {
+            direction = OrthogonalDirection.Right;
+        }
+
+        else if(direction == OrthogonalDirection.Right) {
+            direction = OrthogonalDirection.Down;
+        }
+
+        else if(direction == OrthogonalDirection.Down) {
+            direction = OrthogonalDirection.Left;
+        }
+
+        else if(direction == OrthogonalDirection.Left) {
+            direction = OrthogonalDirection.Up;
+        }
+
+        return direction;
+    }
+
+    static public OrthogonalDirection PreviousDirection(OrthogonalDirection direction) {
+        /*
+         * Return the "previous" direction in the sequence from the given direction.
+         */
+
+        if(direction == OrthogonalDirection.Up) {
+            direction = OrthogonalDirection.Left;
+        }
+
+        else if(direction == OrthogonalDirection.Right) {
+            direction = OrthogonalDirection.Up;
+        }
+
+        else if(direction == OrthogonalDirection.Down) {
+            direction = OrthogonalDirection.Right;
+        }
+
+        else if(direction == OrthogonalDirection.Left) {
+            direction = OrthogonalDirection.Down;
+        }
+
+        return direction;
+    }
+
     #endregion
 }

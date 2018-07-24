@@ -179,6 +179,69 @@ public class Player {
                 direction = Line.ReturnVerticalDirection(dir1, dir2);
             }
             
+            /* If the player is not holding a direction parallel to the line, use their primairy input */
+            if(direction == OrthogonalDirection.NULL) {
+                direction = dir1;
+            }
+            
+
+
+            /*
+             * If the direction to use is perpendicular to the current line, scan the nearby corners
+             * to see if there is an attached line pointing in the given direction
+             */
+            if(currentLine.IsDirectionPerpendicular(direction)) {
+                float minSnapDistance = 1;
+                float tempDistance1 = minSnapDistance;
+                float tempDistance2 = minSnapDistance;
+                Line dir1Line = null;
+                Line dir2Line = null;
+
+                /* Get the corners in each direction */
+                LineCorner tempCorner1 = currentLine.GetCornerInGivenDirection(LineCorner.NextDirection(direction));
+                LineCorner tempCorner2 = currentLine.GetCornerInGivenDirection(LineCorner.PreviousDirection(direction));
+
+                /* Set the distance to each corner. If they are too far away, set the corner to null */
+                if(tempCorner1 != null) {
+                    Debug.Log(tempCorner1);
+                    tempDistance1 = (tempCorner1.position - gamePosition).magnitude;
+                    if(tempDistance1 >= minSnapDistance) { tempCorner1 = null; }
+                }
+                if(tempCorner2 != null) {
+                    Debug.Log(tempCorner2);
+                    tempDistance2 = (tempCorner2.position - gamePosition).magnitude;
+                    if(tempDistance2 >= minSnapDistance) { tempCorner2 = null; }
+                }
+                
+                /* assign the line attached to the given direction */
+                if(tempCorner1 != null) { dir1Line = tempCorner1.AttachedLineAt(direction); }
+                if(tempCorner2 != null) { dir2Line = tempCorner2.AttachedLineAt(direction); }
+                
+                /* If two lines were found, pick the direction towards the closest one */
+                if(dir1Line != null && dir2Line != null) {
+                    
+                    /* Set the direction to the closest corner */
+                    if(tempDistance1 < tempDistance2) {
+                        direction = LineCorner.NextDirection(direction);
+                    }
+                    else {
+                        direction = LineCorner.PreviousDirection(direction);
+                    }
+                }
+
+                /* Properly set the direction to reflect if one or none lines were close enough */
+                else if(dir1Line != null || dir2Line != null) {
+                    if(dir1Line != null) {
+                        direction = LineCorner.NextDirection(direction);
+                    }
+                    else if(dir2Line != null) {
+                        direction = LineCorner.PreviousDirection(direction);
+                    }
+                }
+            }
+            
+
+
             /* The given direction is parallel to the current line */
             if(LineCorner.HoriDirection(direction) && currentLine.IsHorizontal() ||
                     LineCorner.VertDirection(direction) && currentLine.IsVertical()) {
@@ -190,7 +253,6 @@ public class Player {
                 /* Move the player by the amount of distance to travel and update the remaining distance */
                 MovePlayer(direction, travelDistance);
                 distance -= travelDistance;
-                
                 
                 /* We reached a corner if we still have distance to travel and are not blocked */
                 if(distance > 0 && !blocked) {

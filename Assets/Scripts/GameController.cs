@@ -245,7 +245,6 @@ public class GameController {
             /* Get the two directions the player has as inputs */
             OrthogonalDirection primaryDirection = players[i].controls.GetPrimaryInput();
             OrthogonalDirection secondairyDirection = players[i].controls.GetSecondairyInput();
-
             /* The player has given a direction and a distance */
             if((primaryDirection != OrthogonalDirection.NULL || secondairyDirection != OrthogonalDirection.NULL) && travelDistance > 0) {
 
