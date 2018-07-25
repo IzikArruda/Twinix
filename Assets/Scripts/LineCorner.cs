@@ -269,5 +269,29 @@ public class LineCorner {
         return direction;
     }
 
+    static public OrthogonalDirection OppositeDirection(OrthogonalDirection direction) {
+        /*
+         * Return the opposite direction of the given direction
+         */
+
+        if(direction == OrthogonalDirection.Up) {
+            direction = OrthogonalDirection.Down;
+        }
+
+        else if(direction == OrthogonalDirection.Right) {
+            direction = OrthogonalDirection.Left;
+        }
+
+        else if(direction == OrthogonalDirection.Down) {
+            direction = OrthogonalDirection.Up;
+        }
+
+        else if(direction == OrthogonalDirection.Left) {
+            direction = OrthogonalDirection.Right;
+        }
+
+        return direction;
+    }
+
     #endregion
 }
