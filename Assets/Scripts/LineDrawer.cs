@@ -170,7 +170,7 @@ public class LineDrawer {
         Debug.DrawLine(playerPos + Vector3.left, playerPos + Vector3.right);
 
         /* Set the size of the player's sprite */
-        player.SetSpritesize(50);
+        player.SetSpritesize(5);
 
         /* Place the player's sprite at the given player position */
         player.SetSpritePositon(playerPos);

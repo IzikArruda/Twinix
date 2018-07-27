@@ -185,7 +185,6 @@ public class Player {
             }
             
 
-
             /*
              * If the direction to use is perpendicular to the current line, scan the nearby corners
              * to see if there is an attached line pointing in the given direction
@@ -194,11 +193,12 @@ public class Player {
                 OrthogonalDirection newDirection = ScanForLineInDirection(direction);
                 if(newDirection != OrthogonalDirection.NULL) {
                     direction = newDirection;
+
+                    /* Update their current line if needed to reflect the change */
+                    ChangeCurrentLine(newDirection, OrthogonalDirection.NULL);
                 }
             }
             
-
-
             /* The given direction is parallel to the current line */
             if(LineCorner.HoriDirection(direction) && currentLine.IsHorizontal() ||
                     LineCorner.VertDirection(direction) && currentLine.IsVertical()) {
@@ -206,6 +206,8 @@ public class Player {
                 /* Scan ahead from the player's position to see how far the player is allowed to travel */
                 float travelDistance = 0;
                 currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance, distance, true, ref blocked);
+
+                Debug.Log("moving towards " + direction + " " + travelDistance);
 
                 /* Move the player by the amount of distance to travel and update the remaining distance */
                 MovePlayer(direction, travelDistance);
@@ -385,6 +387,11 @@ public class Player {
                 /* Get the next corner along the direction */
                 if(leftCorner.AttachedLineAt(playerDirection) != null) {
                     leftCorner = leftCorner.AttachedLineAt(playerDirection).GetCornerInGivenDirection(playerDirection);
+                }
+
+                /* This was the last corner, so set the corner to null to stop the while loop */
+                else {
+                    leftCorner = null;
                 }
             }
 
