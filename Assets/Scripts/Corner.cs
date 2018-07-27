@@ -20,7 +20,7 @@ public enum OrthogonalDirection {
  * 
  * A line corner can only be attached to a line from their ends - ie at their end or start position.
  */
-public class LineCorner {
+public class Corner {
 
     #region Variables  --------------------------------------------------------- */
 
@@ -38,7 +38,7 @@ public class LineCorner {
 
     #region Constructors  --------------------------------------------------------- */
 
-    public LineCorner(Vector3 cornerPos) {
+    public Corner(Vector3 cornerPos) {
         /*
          * Create a new empty line corner at the given position
          */

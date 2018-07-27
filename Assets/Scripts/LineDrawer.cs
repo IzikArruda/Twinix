@@ -19,7 +19,7 @@ public class LineDrawer {
 
     /* The list of lines, corners and players that need to be drawn */
     private List<Line> lines;
-    private List<LineCorner> corners;
+    private List<Corner> corners;
     private List<Player> players;
 
     /* Material used for each line rendered */
@@ -35,7 +35,7 @@ public class LineDrawer {
          * Initialize the lines and corner lists and some variables used by this script
          */
         lines = new List<Line>();
-        corners = new List<LineCorner>();
+        corners = new List<Corner>();
         players = new List<Player>();
         lineQuat = Quaternion.Euler(0, 0, 0);
         lineMaterial = null;
@@ -47,7 +47,7 @@ public class LineDrawer {
     
     #region Outside Called Functions ------------------------------------------------------------- */
 
-    public void NewGameArea(Line[] edges, LineCorner[] edgeCorner) {
+    public void NewGameArea(Line[] edges, Corner[] edgeCorner) {
         /*
          * A new game area is set up, so save it's sizes and add it's edges/corners to be rendered
          */
@@ -117,7 +117,7 @@ public class LineDrawer {
         Graphics.DrawMesh(line.mesh, Vector3.zero, lineQuat, lineMaterial, 0);
     }
 
-    private void DrawCorner(LineCorner corner) {
+    private void DrawCorner(Corner corner) {
         /*
          * Draw the corner using the debug.drawLine function for now 
          * as corners will require a bit of complexity to properly render
@@ -132,7 +132,7 @@ public class LineDrawer {
         if(corner.left != null) { DrawCornerPart(corner, corner.left, Vector2.left); }
     }
 
-    private void DrawCornerPart(LineCorner corner, Line cornerLine, Vector2 lineDirection) {
+    private void DrawCornerPart(Corner corner, Line cornerLine, Vector2 lineDirection) {
         /*
          * Draw a part of the corner using the given line and the direction of the line.
          */

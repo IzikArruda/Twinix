@@ -133,12 +133,12 @@ public class Player {
 
     #region Get Functions --------------------------------------------------------- */
 
-    public LineCorner GetCorner() {
+    public Corner GetCorner() {
         /*
          * Return the corner the player is currently positioned on.
          * Return null if they are not placed on a corner.
          */
-        LineCorner currentCorner = null;
+        Corner currentCorner = null;
 
         if(gamePosition.Equals(currentLine.startCorner.position)) {
             currentCorner = currentLine.startCorner;
@@ -200,8 +200,8 @@ public class Player {
             }
             
             /* The given direction is parallel to the current line */
-            if(LineCorner.HoriDirection(direction) && currentLine.IsHorizontal() ||
-                    LineCorner.VertDirection(direction) && currentLine.IsVertical()) {
+            if(Corner.HoriDirection(direction) && currentLine.IsHorizontal() ||
+                    Corner.VertDirection(direction) && currentLine.IsVertical()) {
 
                 /* Scan ahead from the player's position to see how far the player is allowed to travel */
                 float travelDistance = 0;
@@ -241,7 +241,7 @@ public class Player {
          * Move the player's game position along the given direction for the given distance
          */
 
-        gamePosition += LineCorner.DirectionToVector(direction)*distance;
+        gamePosition += Corner.DirectionToVector(direction)*distance;
     }
 
     private void ChangeCurrentLine(OrthogonalDirection dir1, OrthogonalDirection dir2) {
@@ -259,7 +259,7 @@ public class Player {
          * the corner, will swap to the corner's right line. This is because if the player
          * wanted to not take the turn and continue upwards, they would have only held the up key.
          */
-        LineCorner currentCorner = GetCorner();
+        Corner currentCorner = GetCorner();
         OrthogonalDirection primaryDirection = dir1;
         OrthogonalDirection secondairyDirection = dir2;
 
@@ -271,7 +271,7 @@ public class Player {
                 /* Current line is horizontal. */
                 if(currentLine.IsHorizontal()) {
                     /* If the primary direction is also horizontal... */
-                    if(LineCorner.HoriDirection(primaryDirection)) {
+                    if(Corner.HoriDirection(primaryDirection)) {
                         /* ...Swap it so the primary direction is now vertical */
                         primaryDirection = dir2;
                         secondairyDirection = dir1;
@@ -281,7 +281,7 @@ public class Player {
                 /* Current line is vertical. */
                 else if(currentLine.IsVertical()) {
                     /* If the primary direction is also vertical... */
-                    if(LineCorner.VertDirection(primaryDirection)) {
+                    if(Corner.VertDirection(primaryDirection)) {
                         /* ...Swap it so the primary direction is now horizontal */
                         primaryDirection = dir2;
                         secondairyDirection = dir1;
@@ -333,32 +333,32 @@ public class Player {
          */
         
         /* Get the first lines from both the player's current line which are travelling along the given direction */
-        Line dir1Line = GetClosestLineTowards(direction, LineCorner.NextDirection(direction));
-        Line dir2Line = GetClosestLineTowards(direction, LineCorner.PreviousDirection(direction));
+        Line dir1Line = GetClosestLineTowards(direction, Corner.NextDirection(direction));
+        Line dir2Line = GetClosestLineTowards(direction, Corner.PreviousDirection(direction));
         
         /* If two lines were found, pick the direction towards the closest one */
         if(dir1Line != null && dir2Line != null) {
 
             /* Get the distance between each line */
-            float tempDistance1 = (dir1Line.GetCornerInGivenDirection(LineCorner.OppositeDirection(direction)).position - gamePosition).magnitude;
-            float tempDistance2 = (dir2Line.GetCornerInGivenDirection(LineCorner.OppositeDirection(direction)).position - gamePosition).magnitude;
+            float tempDistance1 = (dir1Line.GetCornerInGivenDirection(Corner.OppositeDirection(direction)).position - gamePosition).magnitude;
+            float tempDistance2 = (dir2Line.GetCornerInGivenDirection(Corner.OppositeDirection(direction)).position - gamePosition).magnitude;
 
             /* Set the direction to the closest corner */
             if(tempDistance1 < tempDistance2) {
-                direction = LineCorner.NextDirection(direction);
+                direction = Corner.NextDirection(direction);
             }
             else {
-                direction = LineCorner.PreviousDirection(direction);
+                direction = Corner.PreviousDirection(direction);
             }
         }
 
         /* Properly set the direction to reflect if one or none lines were close enough */
         else if(dir1Line != null || dir2Line != null) {
             if(dir1Line != null) {
-                direction = LineCorner.NextDirection(direction);
+                direction = Corner.NextDirection(direction);
             }
             else if(dir2Line != null) {
-                direction = LineCorner.PreviousDirection(direction);
+                direction = Corner.PreviousDirection(direction);
             }
         }
 
@@ -375,7 +375,7 @@ public class Player {
 
         /* Get the first corner encountered along the player direction direction */
         float leftDistance = minSnapDistance;
-        LineCorner leftCorner = currentLine.GetCornerInGivenDirection(playerDirection);
+        Corner leftCorner = currentLine.GetCornerInGivenDirection(playerDirection);
         while(leftCorner != null && desiredLine == null) {
 
             /* Get the distance from the player to this corner. If it's too far from the player, stop tracking */

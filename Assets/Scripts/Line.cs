@@ -13,9 +13,9 @@ public class Line {
 
     public float width;
     public Vector3 start;
-    public LineCorner startCorner;
+    public Corner startCorner;
     public Vector3 end;
-    public LineCorner endCorner;
+    public Corner endCorner;
     public Vector3[] vertices;
     public Mesh mesh;
 
@@ -129,7 +129,7 @@ public class Line {
     
     #region Corner Functions  --------------------------------------------------------- */
     
-    public void AddCorner(LineCorner newCorner) {
+    public void AddCorner(Corner newCorner) {
         /*
          * Add the given corner to this line object. 
          */
@@ -207,7 +207,7 @@ public class Line {
         if(!applyPlayerSizeBuffer) { playerSizeBuffer = 0; }
 
         /* Convert the given direction into a vector3 */
-        Vector3 vectorDirection = LineCorner.DirectionToVector(direction);
+        Vector3 vectorDirection = Corner.DirectionToVector(direction);
 
         /* Get the distance needed to reach the corner */
         float distanceToStart = Vector3.Scale((start - givenPositon), vectorDirection).x + Vector3.Scale((start - givenPositon), vectorDirection).y;
@@ -239,7 +239,7 @@ public class Line {
             if((distanceOnCurrentLine + playerSizeBuffer) > distanceToCorner) {
 
                 /* Get the corner the player can reach */
-                LineCorner corner = GetCornerInGivenDirection(direction);
+                Corner corner = GetCornerInGivenDirection(direction);
                 float distancePastCorner = (distanceOnCurrentLine + playerSizeBuffer) - distanceToCorner;
                 float tempDistance = currentDistanceTravelled;
                 bool tempBlocked = false;
@@ -368,10 +368,10 @@ public class Line {
          */
         OrthogonalDirection horiDir = OrthogonalDirection.NULL;
 
-        if(LineCorner.HoriDirection(dir1)) {
+        if(Corner.HoriDirection(dir1)) {
             horiDir = dir1;
         }
-        else if(LineCorner.HoriDirection(dir2)) {
+        else if(Corner.HoriDirection(dir2)) {
             horiDir = dir2;
         }
 
@@ -385,21 +385,21 @@ public class Line {
          */
         OrthogonalDirection vertDir = OrthogonalDirection.NULL;
 
-        if(LineCorner.VertDirection(dir1)) {
+        if(Corner.VertDirection(dir1)) {
             vertDir = dir1;
         }
-        else if(LineCorner.VertDirection(dir2)) {
+        else if(Corner.VertDirection(dir2)) {
             vertDir = dir2;
         }
 
         return vertDir;
     }
 
-    public LineCorner GetCornerInGivenDirection(OrthogonalDirection direction) {
+    public Corner GetCornerInGivenDirection(OrthogonalDirection direction) {
         /*
          * Return the corner that the given direction points to
          */
-        LineCorner corner = null;
+        Corner corner = null;
 
         /* If the line is horizontal... */
         if(IsHorizontal()) {
@@ -458,8 +458,8 @@ public class Line {
          */
         bool parallel = false;
 
-        if(LineCorner.HoriDirection(direction) && IsHorizontal() ||
-                LineCorner.VertDirection(direction) && IsVertical()) {
+        if(Corner.HoriDirection(direction) && IsHorizontal() ||
+                Corner.VertDirection(direction) && IsVertical()) {
             parallel = true;
         }
 
@@ -472,12 +472,20 @@ public class Line {
          */
         bool perpendicular = false;
 
-        if(LineCorner.HoriDirection(direction) && IsVertical() ||
-                LineCorner.VertDirection(direction) && IsHorizontal()) {
+        if(Corner.HoriDirection(direction) && IsVertical() ||
+                Corner.VertDirection(direction) && IsHorizontal()) {
             perpendicular = true;
         }
 
         return perpendicular;
+    }
+
+    public Line SplitLine() {
+        /*
+         * Split the current line into two lines along with a corner.
+         */
+
+        return null;
     }
 
     #endregion

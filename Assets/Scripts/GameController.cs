@@ -30,7 +30,7 @@ public class GameController {
 
     /* The edges and corners of the game area */
     private Line[] edges;
-    private LineCorner[] corners;
+    private Corner[] corners;
 
     /* Game state */
     private bool gameStarted = false;
@@ -121,25 +121,25 @@ public class GameController {
         edges[16] = new Line(5f, 1, 4f, 1f);
 
         /* Create the corners of the game area which connect the edges */
-        corners = new LineCorner[16];
-        corners[0] = new LineCorner(new Vector2(0, 0));
-        corners[1] = new LineCorner(new Vector2(gameAreaX/2f, 0));
-        corners[2] = new LineCorner(new Vector2(gameAreaX, 0));
-        corners[3] = new LineCorner(new Vector2(0, gameAreaY/2f));
-        corners[4] = new LineCorner(new Vector2(gameAreaX/2f, gameAreaY/2f));
-        corners[5] = new LineCorner(new Vector2(gameAreaX, gameAreaY/2f));
-        corners[6] = new LineCorner(new Vector2(0, gameAreaY));
-        corners[7] = new LineCorner(new Vector2(gameAreaX/2f, gameAreaY));
-        corners[8] = new LineCorner(new Vector2(gameAreaX, gameAreaY));
+        corners = new Corner[16];
+        corners[0] = new Corner(new Vector2(0, 0));
+        corners[1] = new Corner(new Vector2(gameAreaX/2f, 0));
+        corners[2] = new Corner(new Vector2(gameAreaX, 0));
+        corners[3] = new Corner(new Vector2(0, gameAreaY/2f));
+        corners[4] = new Corner(new Vector2(gameAreaX/2f, gameAreaY/2f));
+        corners[5] = new Corner(new Vector2(gameAreaX, gameAreaY/2f));
+        corners[6] = new Corner(new Vector2(0, gameAreaY));
+        corners[7] = new Corner(new Vector2(gameAreaX/2f, gameAreaY));
+        corners[8] = new Corner(new Vector2(gameAreaX, gameAreaY));
         //bottom extra corner
-        corners[9] = new LineCorner(new Vector2(gameAreaX/2f, 0.5f));
-        corners[10] = new LineCorner(new Vector2(gameAreaX/2f + 5, 0.5f));
+        corners[9] = new Corner(new Vector2(gameAreaX/2f, 0.5f));
+        corners[10] = new Corner(new Vector2(gameAreaX/2f + 5, 0.5f));
 
-        corners[11] = new LineCorner(new Vector2(5.5f, 2.5f));
-        corners[12] = new LineCorner(new Vector2(5f, 0.5f));
-        corners[13] = new LineCorner(new Vector2(5.5f, 1));
-        corners[14] = new LineCorner(new Vector2(5f, 1));
-        corners[15] = new LineCorner(new Vector2(4f, 1f));
+        corners[11] = new Corner(new Vector2(5.5f, 2.5f));
+        corners[12] = new Corner(new Vector2(5f, 0.5f));
+        corners[13] = new Corner(new Vector2(5.5f, 1));
+        corners[14] = new Corner(new Vector2(5f, 1));
+        corners[15] = new Corner(new Vector2(4f, 1f));
 
 
         /* Link the edges to the corners */
