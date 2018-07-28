@@ -100,7 +100,9 @@ public class GameController {
          */
 
         /* Create the edges of the game area that cover each edge of the screen */
-        edges = new Line[17];
+        edges = new Line[2];
+        edges[0] = new Line(0, 1, gameAreaX, 1);
+        /*edges = new Line[17];
         edges[0] = new Line(0, 0, gameAreaX/2f, 0);
         edges[1] = new Line(gameAreaX/2f, 0, gameAreaX, 0);
         edges[2] = new Line(0, 0, 0, gameAreaY/2f);
@@ -118,10 +120,13 @@ public class GameController {
         edges[13] = new Line(5.5f, 1, 5.5f, 2.5f);
         edges[14] = new Line(5f, 1, 5f, 0.5f);
         edges[15] = new Line(5.5f, 1, 5f, 1f);
-        edges[16] = new Line(5f, 1, 4f, 1f);
+        edges[16] = new Line(5f, 1, 4f, 1f);*/
 
         /* Create the corners of the game area which connect the edges */
-        corners = new Corner[16];
+        corners = new Corner[3];
+        corners[0] = new Corner(new Vector2(0, 1));
+        corners[1] = new Corner(new Vector2(gameAreaX, 1));
+        /*corners = new Corner[16];
         corners[0] = new Corner(new Vector2(0, 0));
         corners[1] = new Corner(new Vector2(gameAreaX/2f, 0));
         corners[2] = new Corner(new Vector2(gameAreaX, 0));
@@ -139,11 +144,13 @@ public class GameController {
         corners[12] = new Corner(new Vector2(5f, 0.5f));
         corners[13] = new Corner(new Vector2(5.5f, 1));
         corners[14] = new Corner(new Vector2(5f, 1));
-        corners[15] = new Corner(new Vector2(4f, 1f));
+        corners[15] = new Corner(new Vector2(4f, 1f));*/
 
 
         /* Link the edges to the corners */
         corners[0].AddLine(edges[0]);
+        corners[1].AddLine(edges[0]);
+        /*corners[0].AddLine(edges[0]);
         corners[0].AddLine(edges[2]);
         corners[1].AddLine(edges[0]);
         corners[1].AddLine(edges[1]);
@@ -179,8 +186,13 @@ public class GameController {
         corners[14].AddLine(edges[14]);
         corners[14].AddLine(edges[15]);
         corners[14].AddLine(edges[16]);
-        corners[15].AddLine(edges[16]);
+        corners[15].AddLine(edges[16]);*/
 
+
+        /* Split the current line into two and update the arrays */
+        edges[1] = edges[0].SplitLine(new Vector2(gameAreaX/2f, 1));
+        corners[2] = edges[0].endCorner;
+        Debug.Log(corners[2].left + " _ " + corners[2].right);
 
         /* Set the width and Initialize the meshes for each edge lines. */
         foreach(Line edge in edges) {
@@ -192,10 +204,10 @@ public class GameController {
         /* Place the players onto their edges */
         for(int i = 0; i < players.Length; i++) {
             if(i == 0) {
-                players[i].SetStartingLine(edges[16], 0.5f);
+                players[i].SetStartingLine(edges[0], 0.1f);
             }
             else {
-                players[i].SetStartingLine(edges[1], 0.5f);
+                players[i].SetStartingLine(edges[0], 0.9f);
             }
         }
 

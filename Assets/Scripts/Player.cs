@@ -207,7 +207,7 @@ public class Player {
                 float travelDistance = 0;
                 currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance, distance, true, ref blocked);
 
-                Debug.Log("moving towards " + direction + " " + travelDistance);
+                //Debug.Log("moving towards " + direction + " " + travelDistance);
 
                 /* Move the player by the amount of distance to travel and update the remaining distance */
                 MovePlayer(direction, travelDistance);
@@ -323,8 +323,11 @@ public class Player {
             currentLine = newLine;
         }
     }
-    
+
     #endregion
+
+
+    #region Moving Functions --------------------------------------------------------- */
 
     private OrthogonalDirection ScanForLineInDirection(OrthogonalDirection direction) {
         /*
@@ -403,4 +406,6 @@ public class Player {
 
         return desiredLine;
     }
+
+    #endregion
 }

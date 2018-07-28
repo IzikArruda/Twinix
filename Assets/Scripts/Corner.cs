@@ -118,6 +118,37 @@ public class Corner {
         return lineSet;
     }
 
+    public bool RemoveLine(Line savedLine) {
+        /*
+         * Unlink the given line from this corner. Return true if the line was removed.
+         */
+        bool removed = false;
+
+        /* Remove the given line if it is linked to this corner */
+        if(up != null && up.Equals(savedLine)) {
+            up = null;
+            removed = true;
+        }
+        else if(right != null && right.Equals(savedLine)) {
+            right = null;
+            removed = true;
+        }
+        else if(down != null && down.Equals(savedLine)) {
+            down = null;
+            removed = true;
+        }
+        else if(left != null && left.Equals(savedLine)) {
+            left = null;
+            removed = true;
+        }
+
+        if(removed) {
+            savedLine.RemoveCorner(this);
+        }
+
+        return removed;
+    }
+
     #endregion
 
     

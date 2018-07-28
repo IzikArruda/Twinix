@@ -160,6 +160,19 @@ public class Line {
         }
     }
 
+    public void RemoveCorner(Corner savedCorner) {
+        /*
+         * Remove the given corner from this line
+         */
+
+        if(startCorner.Equals(savedCorner)) {
+            startCorner = null;
+        }
+        else if(endCorner.Equals(savedCorner)) {
+            endCorner = null;
+        }
+    }
+
     #endregion
 
     
@@ -480,12 +493,71 @@ public class Line {
         return perpendicular;
     }
 
-    public Line SplitLine() {
+    public bool PointOnLine(Vector3 position) {
+        /*
+         * Return whether the given position is on the current line or not.
+         * If the point is on a corner, it is not considered on the line.
+         */
+        bool onLine = false;
+        float min, max, flat;
+        min = max = flat = 0;
+
+        /* Set the values of the line to compare the position */
+        if(IsHorizontal()) {
+            flat = startCorner.position.y;
+            min = Mathf.Min(startCorner.position.x, endCorner.position.x);
+            max = Mathf.Max(startCorner.position.x, endCorner.position.x);
+            if(position.y == flat && position.x > min && position.x < max) {
+                onLine = true;
+            }
+        }
+        else if(IsVertical()) {
+            flat = startCorner.position.x;
+            min = Mathf.Min(startCorner.position.y, endCorner.position.y);
+            max = Mathf.Max(startCorner.position.y, endCorner.position.y);
+            if(position.x == flat && position.y > min && position.y < max) {
+                onLine = true;
+            }
+        }
+
+        return onLine;
+    }
+
+    public Line SplitLine(Vector3 splitPosition) {
         /*
          * Split the current line into two lines along with a corner.
+         * The given position is where the line will be split.
+         * The function will always shorten the current line 
+         * from it's end position and keep it's start position unchanged.
          */
+        Line newLine = null;
+        Corner newCorner = null;
 
-        return null;
+        /* Check if the given position is actually on the line */
+        if(PointOnLine(splitPosition)) {
+
+            /* Create a new line that goes from the given position to the current line's end */
+            newLine = new Line(splitPosition.x, splitPosition.y, end.x, end.y);
+
+            /* Link the new line to the end corner of this line */
+            newCorner = endCorner;
+            newCorner.RemoveLine(this);
+            newCorner.AddLine(newLine);
+
+            /* Reposition the end point of this line to match the new line's starting position */
+            end = splitPosition;
+
+            /* Create a new corner that connects this line with the new line */
+            newCorner = new Corner(splitPosition);
+            newCorner.AddLine(this);
+            newCorner.AddLine(newLine);
+        }
+
+        if(linkedPlayers.Count > 0) {
+            Debug.Log("Split line with players on it");
+        }
+
+        return newLine;
     }
 
     #endregion
