@@ -47,16 +47,16 @@ public class LineDrawer {
     
     #region Outside Called Functions ------------------------------------------------------------- */
 
-    public void NewGameArea(Line[] edges, Corner[] edgeCorner) {
+    public void NewGameArea(List<Line> edges, List<Corner> edgeCorner) {
         /*
          * A new game area is set up, so save it's sizes and add it's edges/corners to be rendered
          */
 
-        for(int i = 0; i < edges.Length; i++) {
+        for(int i = 0; i < edges.Count; i++) {
             lines.Add(edges[i]);
         }
 
-        for(int i = 0; i < edgeCorner.Length; i++) {
+        for(int i = 0; i < edgeCorner.Count; i++) {
             corners.Add(edgeCorner[i]);
         }
     }
@@ -170,7 +170,7 @@ public class LineDrawer {
         Debug.DrawLine(playerPos + Vector3.left, playerPos + Vector3.right);
 
         /* Set the size of the player's sprite */
-        player.SetSpritesize(5);
+        player.SetSpritesize(20);
 
         /* Place the player's sprite at the given player position */
         player.SetSpritePositon(playerPos);

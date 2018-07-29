@@ -34,25 +34,33 @@ public class Corner {
     public Vector3 position;
 
     #endregion
-    
+
 
     #region Constructors  --------------------------------------------------------- */
 
-    public Corner(Vector3 cornerPos) {
+    private Corner(Vector3 cornerPosition) {
         /*
-         * Create a new empty line corner at the given position
+         * Create a new empty corner corner at the given position
          */
 
-        position = cornerPos;
+        position = cornerPosition;
         up = null;
         right = null;
         down = null;
         left = null;
     }
 
+    public static Corner NewCorner(float posX, float posY) {
+        return new Corner(new Vector3(posX, posY, 0));
+    }
+
+    public static Corner NewCorner(Vector3 cornerPosition) {
+        return new Corner(cornerPosition);
+    }
+    
     #endregion
 
-    
+
     #region Line Connection Functions  --------------------------------------------------------- */
 
     public bool AddLine(Line newLine) {

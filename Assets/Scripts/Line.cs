@@ -548,7 +548,7 @@ public class Line {
             end = splitPosition;
 
             /* Create a new corner that connects this line with the new line */
-            newCorner = new Corner(splitPosition);
+            newCorner = Corner.NewCorner(splitPosition);
             newCorner.AddLine(this);
             newCorner.AddLine(newLine);
         }

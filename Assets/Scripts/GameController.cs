@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 /*
  * Control how the game plays and how the play area is initialized.
@@ -28,9 +29,9 @@ public class GameController {
     /* The width of the lines that are created in this game controller */
     private float lineWidth = 5;
 
-    /* The edges and corners of the game area */
-    private Line[] edges;
-    private Corner[] corners;
+    /* The lines and corners of the game area */
+    private List<Line> lines;
+    private List<Corner> corners;
 
     /* Game state */
     private bool gameStarted = false;
@@ -53,6 +54,8 @@ public class GameController {
         gameAreaX = width;
         gameAreaY = height;
         windowController = linkedWindow;
+        lines = new List<Line>();
+        corners = new List<Corner>();
 
         /* Create the lineDrawer for this game */
         lineDrawer = new LineDrawer(this);
@@ -99,9 +102,10 @@ public class GameController {
          * Create the lines and corners that make up the edges of the game area.
          */
 
+        /* Load the desired level */
+        LoadDefaultLevel();
+
         /* Create the edges of the game area that cover each edge of the screen */
-        edges = new Line[2];
-        edges[0] = new Line(0, 1, gameAreaX, 1);
         /*edges = new Line[17];
         edges[0] = new Line(0, 0, gameAreaX/2f, 0);
         edges[1] = new Line(gameAreaX/2f, 0, gameAreaX, 0);
@@ -123,9 +127,6 @@ public class GameController {
         edges[16] = new Line(5f, 1, 4f, 1f);*/
 
         /* Create the corners of the game area which connect the edges */
-        corners = new Corner[3];
-        corners[0] = new Corner(new Vector2(0, 1));
-        corners[1] = new Corner(new Vector2(gameAreaX, 1));
         /*corners = new Corner[16];
         corners[0] = new Corner(new Vector2(0, 0));
         corners[1] = new Corner(new Vector2(gameAreaX/2f, 0));
@@ -148,8 +149,6 @@ public class GameController {
 
 
         /* Link the edges to the corners */
-        corners[0].AddLine(edges[0]);
-        corners[1].AddLine(edges[0]);
         /*corners[0].AddLine(edges[0]);
         corners[0].AddLine(edges[2]);
         corners[1].AddLine(edges[0]);
@@ -190,33 +189,94 @@ public class GameController {
 
 
         /* Split the current line into two and update the arrays */
-        edges[1] = edges[0].SplitLine(new Vector2(gameAreaX/2f, 1));
-        corners[2] = edges[0].endCorner;
-        Debug.Log(corners[2].left + " _ " + corners[2].right);
+        //edges[1] = edges[0].SplitLine(new Vector2(gameAreaX/2f, 1));
+        //corners[2] = edges[0].endCorner;
+        //Debug.Log(corners[2].left + " _ " + corners[2].right);
 
-        /* Set the width and Initialize the meshes for each edge lines. */
-        foreach(Line edge in edges) {
-            edge.width = lineWidth;
-            edge.GenerateVertices(this);
-            edge.GenerateMesh();
+
+
+
+
+        /* Set the width and Initialize the meshes for each lines. */
+        foreach(Line line in lines) {
+            line.width = lineWidth;
+            line.GenerateVertices(this);
+            line.GenerateMesh();
         }
 
-        /* Place the players onto their edges */
+        /* Place the players onto random lines */
         for(int i = 0; i < players.Length; i++) {
-            if(i == 0) {
-                players[i].SetStartingLine(edges[0], 0.1f);
-            }
-            else {
-                players[i].SetStartingLine(edges[0], 0.9f);
-            }
+            players[i].SetStartingLine(lines[Mathf.FloorToInt(Random.Range(0, lines.Count-1))], Mathf.FloorToInt(Random.Range(0, 1)));
         }
 
         /* Give the lineDrawer the new edges and corners of the game area */
-        lineDrawer.NewGameArea(edges, corners);
+        lineDrawer.NewGameArea(lines, corners);
     }
 
     #endregion
 
+
+    #region Level Layout Functions  --------------------------------------------------------- */
+
+    public void LoadLevel(int levelNumber) {
+        /*
+         * Load the level defined by the given level number. A level is loaded by setting 
+         * the game's playArea sizes and adding the lines and corners to their respective lists.
+         */
+
+        if(levelNumber == 1) {
+            LoadLevel1();
+        }
+
+        /* Load the default, 4 corner level */
+        else {
+            LoadDefaultLevel();
+        }
+    }
+
+    public void LoadLevel1() {
+        /*
+         * Level 1 is a basic square with a cross(+) through the middle
+         */
+    }
+
+    public void LoadDefaultLevel() {
+        /*
+         * The default level is the base QUIX level, featuring 4 corners and 4 lines.
+         */
+        gameAreaX = 20;
+        gameAreaY = 20;
+
+        /* Create the basic lines around the screen's edges */
+        lines.Add(new Line(0, 0, gameAreaX, 0));
+        lines.Add(new Line(gameAreaX, 0, gameAreaX, gameAreaY));
+        lines.Add(new Line(gameAreaX, gameAreaY, 0, gameAreaY));
+        lines.Add(new Line(0, gameAreaY, 0, 0));
+
+        /* Create the corners around the screen's corners */
+        corners.Add(Corner.NewCorner(0, 0));
+        corners.Add(Corner.NewCorner(gameAreaX, 0));
+        corners.Add(Corner.NewCorner(gameAreaX, gameAreaY));
+        corners.Add(Corner.NewCorner(0, gameAreaY));
+
+        /* Link all the lines to their respective corners */
+        LinkLinesAndCorners();
+    }
+
+    public void LinkLinesAndCorners() {
+        /*
+         * Connect all the lines and corners
+         */
+
+        /* This method is not time efficent, but it does cover all connections */
+        for(int i = 0; i < lines.Count; i++) {
+            for(int ii = 0; ii < corners.Count; ii++) {
+                corners[ii].AddLine(lines[i]);
+            }
+        }
+    }
+
+    #endregion
 
     #region LineDrawer Functions  --------------------------------------------------------- */
 
