@@ -47,7 +47,7 @@ public class LineDrawer {
     
     #region Outside Called Functions ------------------------------------------------------------- */
 
-    public void NewGameArea(List<Line> edges, List<Corner> edgeCorner) {
+    public void NewGameArea(List<Line> edges, Dictionary<Vector3, Corner>.ValueCollection edgeCorner) {
         /*
          * A new game area is set up, so save it's sizes and add it's edges/corners to be rendered
          */
@@ -56,8 +56,11 @@ public class LineDrawer {
             lines.Add(edges[i]);
         }
 
+        foreach(Corner corner in edgeCorner) {
+            corners.Add(corner);
+        }
         for(int i = 0; i < edgeCorner.Count; i++) {
-            corners.Add(edgeCorner[i]);
+            //
         }
     }
 

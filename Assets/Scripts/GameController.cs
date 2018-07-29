@@ -31,7 +31,7 @@ public class GameController {
 
     /* The lines and corners of the game area */
     private List<Line> lines;
-    private List<Corner> corners;
+    private Dictionary<Vector3, Corner> corners;
 
     /* Game state */
     private bool gameStarted = false;
@@ -55,7 +55,7 @@ public class GameController {
         gameAreaY = height;
         windowController = linkedWindow;
         lines = new List<Line>();
-        corners = new List<Corner>();
+        corners = new Dictionary<Vector3, Corner>();
 
         /* Create the lineDrawer for this game */
         lineDrawer = new LineDrawer(this);
@@ -210,7 +210,7 @@ public class GameController {
         }
 
         /* Give the lineDrawer the new edges and corners of the game area */
-        lineDrawer.NewGameArea(lines, corners);
+        lineDrawer.NewGameArea(lines, corners.Values);
     }
 
     #endregion
@@ -254,10 +254,10 @@ public class GameController {
         lines.Add(new Line(0, gameAreaY, 0, 0));
 
         /* Create the corners around the screen's corners */
-        corners.Add(Corner.NewCorner(0, 0));
-        corners.Add(Corner.NewCorner(gameAreaX, 0));
-        corners.Add(Corner.NewCorner(gameAreaX, gameAreaY));
-        corners.Add(Corner.NewCorner(0, gameAreaY));
+        NewCorner(0, 0);
+        NewCorner(gameAreaX, 0);
+        NewCorner(gameAreaX, gameAreaY);
+        NewCorner(0, gameAreaY);
 
         /* Link all the lines to their respective corners */
         LinkLinesAndCorners();
@@ -265,18 +265,49 @@ public class GameController {
 
     public void LinkLinesAndCorners() {
         /*
-         * Connect all the lines and corners
+         * Connect all lines to their respective corners. This is done by searching
+         * the dictionairy of corners using the start and end points of the line
+         * as the keys for the corners they will use.
          */
-
-        /* This method is not time efficent, but it does cover all connections */
+         
         for(int i = 0; i < lines.Count; i++) {
-            for(int ii = 0; ii < corners.Count; ii++) {
-                corners[ii].AddLine(lines[i]);
+            /* Add the start of the line */
+            if(corners.ContainsKey(lines[i].start)) {
+                corners[lines[i].start].AddLine(lines[i]);
+            }
+            else {
+                Debug.Log("WARNING: A line's start position does not reach a corner");
+            }
+
+            /* Add the end of the line */
+            if(corners.ContainsKey(lines[i].end)) {
+                corners[lines[i].end].AddLine(lines[i]);
+            }
+            else {
+                Debug.Log("WARNING: A line's end position does not reach a corner");
             }
         }
     }
 
+    private void NewCorner(float x, float y) {
+        /*
+         * Create a corner at the given coordinates. If a corner already exists at 
+         * the given position, print an error.
+         */
+        Vector3 cornerPosition = new Vector3(x, y, 0);
+        Corner newCorner;
+
+        if(!corners.ContainsKey(cornerPosition)) {
+            newCorner = Corner.NewCorner(cornerPosition);
+            corners.Add(cornerPosition, newCorner);
+        }
+        else {
+            Debug.Log("WARNING: Trying to create a corner ontop of another corner");
+        }
+    }
+
     #endregion
+
 
     #region LineDrawer Functions  --------------------------------------------------------- */
 
