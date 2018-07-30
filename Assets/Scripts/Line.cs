@@ -27,19 +27,28 @@ public class Line {
 
     #region Constructors --------------------------------------------------------- */
     
-    public Line(float startX, float startY, float endX, float endY) {
+    private Line(Vector3 startPos, Vector3 endPos) {
         /*
          * Create a line with the give start and end positions. Calculate the starting position.
          */
 
         width = -1;
-        start = new Vector3(startX, startY);
-        end = new Vector3(endX, endY);
+        start = startPos;
+        end = endPos;
         vertices = new Vector3[4];
         mesh = new Mesh();
         linkedPlayers = new List<Player>();
     }
-    
+
+    public static Line NewLine(Vector3 startPos, Vector3 endPos) {
+        return new Line(startPos, endPos);
+    }
+
+    public static Line NewLine(float startX, float startY, float endX, float endY) {
+        return new Line(new Vector3(startX, startY, 0), new Vector3(endX, endY, 0));
+    }
+
+
     #endregion
 
 
@@ -537,7 +546,7 @@ public class Line {
         if(PointOnLine(splitPosition)) {
 
             /* Create a new line that goes from the given position to the current line's end */
-            newLine = new Line(splitPosition.x, splitPosition.y, end.x, end.y);
+            newLine = Line.NewLine(splitPosition.x, splitPosition.y, end.x, end.y);
 
             /* Link the new line to the end corner of this line */
             newCorner = endCorner;

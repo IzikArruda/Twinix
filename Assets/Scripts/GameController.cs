@@ -103,100 +103,8 @@ public class GameController {
          */
 
         /* Load the desired level */
-        LoadDefaultLevel();
-
-        /* Create the edges of the game area that cover each edge of the screen */
-        /*edges = new Line[17];
-        edges[0] = new Line(0, 0, gameAreaX/2f, 0);
-        edges[1] = new Line(gameAreaX/2f, 0, gameAreaX, 0);
-        edges[2] = new Line(0, 0, 0, gameAreaY/2f);
-        edges[3] = new Line(gameAreaX/2f, 0, gameAreaX/2f, 0.5f);
-        edges[4] = new Line(gameAreaX, 0, gameAreaX, gameAreaY/2f);
-        edges[5] = new Line(0, gameAreaY/2f, gameAreaX/2f, gameAreaY/2f);
-        edges[6] = new Line(gameAreaX/2f, gameAreaY/2f, gameAreaX, gameAreaY/2f);
-        edges[7] = new Line(0, gameAreaY/2f, 0, gameAreaY);
-        edges[8] = new Line(gameAreaX/2f, gameAreaY/2f, gameAreaX/2f, gameAreaY);
-        edges[9] = new Line(gameAreaX, gameAreaY/2f, gameAreaX, gameAreaY);
-        edges[10] = new Line(0, gameAreaY, gameAreaX/2f, gameAreaY);
-        edges[11] = new Line(gameAreaX/2f, gameAreaY, gameAreaX, gameAreaY);
-        //extra bottom line
-        edges[12] = new Line(gameAreaX/2f, 0.5f, gameAreaX/2f + 5, 0.5f);
-        edges[13] = new Line(5.5f, 1, 5.5f, 2.5f);
-        edges[14] = new Line(5f, 1, 5f, 0.5f);
-        edges[15] = new Line(5.5f, 1, 5f, 1f);
-        edges[16] = new Line(5f, 1, 4f, 1f);*/
-
-        /* Create the corners of the game area which connect the edges */
-        /*corners = new Corner[16];
-        corners[0] = new Corner(new Vector2(0, 0));
-        corners[1] = new Corner(new Vector2(gameAreaX/2f, 0));
-        corners[2] = new Corner(new Vector2(gameAreaX, 0));
-        corners[3] = new Corner(new Vector2(0, gameAreaY/2f));
-        corners[4] = new Corner(new Vector2(gameAreaX/2f, gameAreaY/2f));
-        corners[5] = new Corner(new Vector2(gameAreaX, gameAreaY/2f));
-        corners[6] = new Corner(new Vector2(0, gameAreaY));
-        corners[7] = new Corner(new Vector2(gameAreaX/2f, gameAreaY));
-        corners[8] = new Corner(new Vector2(gameAreaX, gameAreaY));
-        //bottom extra corner
-        corners[9] = new Corner(new Vector2(gameAreaX/2f, 0.5f));
-        corners[10] = new Corner(new Vector2(gameAreaX/2f + 5, 0.5f));
-
-        corners[11] = new Corner(new Vector2(5.5f, 2.5f));
-        corners[12] = new Corner(new Vector2(5f, 0.5f));
-        corners[13] = new Corner(new Vector2(5.5f, 1));
-        corners[14] = new Corner(new Vector2(5f, 1));
-        corners[15] = new Corner(new Vector2(4f, 1f));*/
-
-
-        /* Link the edges to the corners */
-        /*corners[0].AddLine(edges[0]);
-        corners[0].AddLine(edges[2]);
-        corners[1].AddLine(edges[0]);
-        corners[1].AddLine(edges[1]);
-        corners[1].AddLine(edges[3]);
-        corners[2].AddLine(edges[1]);
-        corners[2].AddLine(edges[4]);
-        corners[3].AddLine(edges[2]);
-        corners[3].AddLine(edges[5]);
-        corners[3].AddLine(edges[7]);
-        corners[4].AddLine(edges[3]);
-        corners[4].AddLine(edges[5]);
-        corners[4].AddLine(edges[6]);
-        corners[4].AddLine(edges[8]);
-        corners[5].AddLine(edges[4]);
-        corners[5].AddLine(edges[6]);
-        corners[5].AddLine(edges[9]);
-        corners[6].AddLine(edges[7]);
-        corners[6].AddLine(edges[10]);
-        corners[7].AddLine(edges[8]);
-        corners[7].AddLine(edges[10]);
-        corners[7].AddLine(edges[11]);
-        corners[8].AddLine(edges[9]);
-        corners[8].AddLine(edges[11]);
-        //bottom extra corner
-        corners[9].AddLine(edges[3]);
-        corners[9].AddLine(edges[12]);
-        corners[10].AddLine(edges[12]);
-
-        corners[11].AddLine(edges[13]);
-        corners[12].AddLine(edges[14]);
-        corners[13].AddLine(edges[13]);
-        corners[13].AddLine(edges[15]);
-        corners[14].AddLine(edges[14]);
-        corners[14].AddLine(edges[15]);
-        corners[14].AddLine(edges[16]);
-        corners[15].AddLine(edges[16]);*/
-
-
-        /* Split the current line into two and update the arrays */
-        //edges[1] = edges[0].SplitLine(new Vector2(gameAreaX/2f, 1));
-        //corners[2] = edges[0].endCorner;
-        //Debug.Log(corners[2].left + " _ " + corners[2].right);
-
-
-
-
-
+        LoadLevel(0);
+        
         /* Set the width and Initialize the meshes for each lines. */
         foreach(Line line in lines) {
             line.width = lineWidth;
@@ -217,59 +125,14 @@ public class GameController {
 
 
     #region Level Layout Functions  --------------------------------------------------------- */
-
-    public void LoadLevel(int levelNumber) {
-        /*
-         * Load the level defined by the given level number. A level is loaded by setting 
-         * the game's playArea sizes and adding the lines and corners to their respective lists.
-         */
-
-        if(levelNumber == 1) {
-            LoadLevel1();
-        }
-
-        /* Load the default, 4 corner level */
-        else {
-            LoadDefaultLevel();
-        }
-    }
-
-    public void LoadLevel1() {
-        /*
-         * Level 1 is a basic square with a cross(+) through the middle
-         */
-    }
-
-    public void LoadDefaultLevel() {
-        /*
-         * The default level is the base QUIX level, featuring 4 corners and 4 lines.
-         */
-        gameAreaX = 20;
-        gameAreaY = 20;
-
-        /* Create the basic lines around the screen's edges */
-        lines.Add(new Line(0, 0, gameAreaX, 0));
-        lines.Add(new Line(gameAreaX, 0, gameAreaX, gameAreaY));
-        lines.Add(new Line(gameAreaX, gameAreaY, 0, gameAreaY));
-        lines.Add(new Line(0, gameAreaY, 0, 0));
-
-        /* Create the corners around the screen's corners */
-        NewCorner(0, 0);
-        NewCorner(gameAreaX, 0);
-        NewCorner(gameAreaX, gameAreaY);
-        NewCorner(0, gameAreaY);
-
-        /* Link all the lines to their respective corners */
-        LinkLinesAndCorners();
-    }
-
-    public void LinkLinesAndCorners() {
+    
+    private void LinkLinesAndCorners() {
         /*
          * Connect all lines to their respective corners. This is done by searching
          * the dictionairy of corners using the start and end points of the line
          * as the keys for the corners they will use.
          */
-         
+
         for(int i = 0; i < lines.Count; i++) {
             /* Add the start of the line */
             if(corners.ContainsKey(lines[i].start)) {
@@ -289,10 +152,106 @@ public class GameController {
         }
     }
 
+    private void FillArraysWithSequence(Vector3[] sequence) {
+        /*
+         * Given a sequence of positions, create corners on each position and 
+         * connect lines between the corners that are in a sequence. A sequence
+         * is sepperated by a vector containing NaN values.
+         */
+
+        /* Create and add the lines from the given sequence into their list */
+        NewCorner(sequence[0]); /* Create the first corner in the first sequence */
+        for(int i = 1; i < sequence.Length; i++) {
+
+            /* Create the corner of the current position in the sequence */
+            if(sequence[i].x != float.NegativeInfinity) {
+                NewCorner(sequence[i]);
+
+                /* Create a line if the previous entry in the sequence exists */
+                if(sequence[i-1].x != float.NegativeInfinity) {
+                    lines.Add(Line.NewLine(sequence[i-1], sequence[i]));
+                }
+            }
+        }
+    }
+
+    public void LoadLevel(int levelNumber) {
+        /*
+         * Load the level defined by the given level number. A level is loaded by setting 
+         * the game's playArea sizes and adding the lines and corners to their respective lists.
+         */
+
+        if(levelNumber == 1) {
+            LoadLevel1();
+        }
+
+        /* Load the default, 4 corner level */
+        else {
+            LoadDefaultLevel();
+        }
+    }
+
+    public void LoadLevel1() {
+        /*
+         * Level 1 is a basic square with a cross(+) through the middle.
+         * 
+         * Create an array of positions that represent the level's layout.
+         * A sequence of non-NaN values indicate a sequence of lines.
+         * When a null character is encountered, begin a new sequence with the next entry.
+         */
+        gameAreaX = 20;
+        gameAreaY = 20;
+        Vector3[] sequence = {
+            new Vector3(0, 0, 0),
+            new Vector3(gameAreaX/2f, 0, 0),
+            new Vector3(gameAreaX, 0, 0),
+            new Vector3(gameAreaX, gameAreaY/2f, 0),
+            new Vector3(gameAreaX, gameAreaY, 0),
+            new Vector3(gameAreaX/2f, gameAreaY, 0),
+            new Vector3(0, gameAreaY, 0),
+            new Vector3(0, gameAreaY/2f, 0),
+            new Vector3(0, 0, 0),
+            new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity),
+            new Vector3(gameAreaX/2f, 0, 0),
+            new Vector3(gameAreaX/2f, gameAreaY/2f, 0),
+            new Vector3(gameAreaX/2f, gameAreaY, 0),
+            new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity),
+            new Vector3(0, gameAreaY/2f, 0),
+            new Vector3(gameAreaX/2f, gameAreaY/2f, 0),
+            new Vector3(gameAreaX, gameAreaY/2f, 0),
+        };
+
+        /* Use the sequence to populate the corners and lines arrays */
+        FillArraysWithSequence(sequence);
+        
+        /* Link all the lines to their respective corners */
+        LinkLinesAndCorners();
+    }
+
+    public void LoadDefaultLevel() {
+        /*
+         * The default level is the base QUIX level, featuring 4 corners and 4 lines.
+         */
+        gameAreaX = 20;
+        gameAreaY = 20;
+        Vector3[] sequence = {
+            new Vector3(0, 0, 0),
+            new Vector3(gameAreaX, 0, 0),
+            new Vector3(gameAreaX, gameAreaY, 0),
+            new Vector3(0, gameAreaY, 0),
+            new Vector3(0, 0, 0),
+        };
+
+        /* Use the sequence to populate the corners and lines arrays */
+        FillArraysWithSequence(sequence);
+
+        /* Link all the lines to their respective corners */
+        LinkLinesAndCorners();
+    }
+    
     private void NewCorner(float x, float y) {
         /*
-         * Create a corner at the given coordinates. If a corner already exists at 
-         * the given position, print an error.
+         * Create a corner at the given coordinates.
          */
         Vector3 cornerPosition = new Vector3(x, y, 0);
         Corner newCorner;
@@ -302,8 +261,16 @@ public class GameController {
             corners.Add(cornerPosition, newCorner);
         }
         else {
-            Debug.Log("WARNING: Trying to create a corner ontop of another corner");
+            /////Debug.Log("WARNING: Trying to create a corner ontop of another corner");
         }
+    }
+
+    private void NewCorner(Vector3 cornerPosition) {
+        /*
+         * Create a corner at the given position
+         */
+
+        NewCorner(cornerPosition.x, cornerPosition.y);
     }
 
     #endregion
