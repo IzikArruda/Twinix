@@ -232,9 +232,9 @@ public class GameController {
         /*
          * The default level is the base QUIX level, featuring 4 corners and 4 lines.
          */
-        gameAreaX = 20;
-        gameAreaY = 20;
-        gridSize = 0.1f;
+        gameAreaX = 10;
+        gameAreaY = 10;
+        gridSize = 1f;
         Vector3[] sequence = {
             new Vector3(0, 0, 0),
             new Vector3(gameAreaX, 0, 0),

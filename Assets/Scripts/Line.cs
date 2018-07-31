@@ -601,5 +601,45 @@ public class Line {
         return distance;
     }
 
+    public float DistanceToClosestGrid(Vector3 position, OrthogonalDirection direction, float gridSize, bool includeCorders) {
+        /*
+         * Given a position and direction on this line, return the distance to the closest grid mark.
+         * The given boolean controls whether we should include nearby corners.
+         */
+        float pos = 0;
+        float dir = 0;
+
+        /* Get the values we want from the positions and direction depending on the line's orientation */
+        if(IsHorizontal()) {
+            pos = position.x;
+            dir = Corner.DirectionToVector(direction).x;
+        }
+        else if(IsVertical()) {
+            pos = position.y;
+            dir = Corner.DirectionToVector(direction).y;
+        }
+        float remainder = pos % (gridSize);
+
+        /* Ensure the given direction and position are actually on the line */
+        if(IsDirectionPerpendicular(direction)) {
+            Debug.Log("WARNING: Given direction is perpendicular to this line");
+        }
+        if(!PointOnLine(position, true)) {
+            Debug.Log("WARNING: Given position is not on this line");
+        }
+    
+        /* Change the nearest grid mark to match the orientation of the direction */
+        if(dir > 0) {
+            remainder = gridSize - remainder;
+        }
+
+        /* Check if the nearest corner is encountered before the grid mark */
+        if(includeCorders) {
+            remainder = Mathf.Min(remainder, DistanceToCorner(position, direction));
+        }
+
+        return remainder;
+    }
+
     #endregion
 }

@@ -203,8 +203,6 @@ public class Player {
         /*
          * Move the player along their line. How they are moved is determined by the player's
          * state, the inputs they are using and their current line.
-         * 
-         * 
          */
         OrthogonalDirection direction = OrthogonalDirection.NULL;
 
@@ -266,24 +264,56 @@ public class Player {
                  * travel normally along the direction until a corner.
                  * 
                  * If direction is NOT equal to the primary input because it was changed from UpdatePlayerInputDirection(),
-                 * then the player is trying to find the nearest grid mark to start drawing from
+                 * then the player is trying to find the "drawing point" to start drawing from.
+                 * A drawing point is the edge of the gameArea's grid or any corner.
                  * 
                  * If direction does not match primary, that means we are trying to enter the drawing
                  * state but we are not on the grid.
                  */
                 else if(state == PlayerStates.PreDrawing) {
-
-                    /* Get the shortest distance between the remaining distance to travel and the distance to the corner */
-                    float shortestDistance = Mathf.Min(currentLine.DistanceToCorner(gamePosition, direction), distance);
+                    float shortestDistance = currentLine.DistanceToCorner(gamePosition, direction);
                     
                     /* If we are trying to find the nearest grid mark, update shortestDistance to reflect said distance */
                     if(direction != primary) {
-                        //shortestDistance = Mathf.Min(shortestDistance, distanceToClosestGrid());
+                        float forwardGrid = currentLine.DistanceToClosestGrid(gamePosition, direction, gameController.gridSize, true);
+                        float backwardGrid = currentLine.DistanceToClosestGrid(gamePosition, Corner.OppositeDirection(direction), gameController.gridSize, true);
+
+                        /* If the backwards grid is closer, flip the direction and use the grid behind */
+                        if(backwardGrid < forwardGrid) {
+                            shortestDistance = backwardGrid;
+                            direction = Corner.OppositeDirection(direction);
+                        }
+
+                        /* Use the forward grid as it's closer */
+                        else {
+                            shortestDistance = forwardGrid; 
+                        }
                     }
 
-                    /* Move the player along the given direction for the shortest of the distances */
-                    MovePlayer(direction, shortestDistance);
-                    distance -= shortestDistance;
+                    /* Prevent the player from travelling further than the remaining distance allows */
+                    shortestDistance = Mathf.Min(shortestDistance, distance);
+
+                    
+                    /* If we have reached a corner that doesn't have a line in the given direction
+                     * OR we have reached a grid marker (indicated by shortestDistance = 0),
+                     * then we start drawing a line from the player's given position */
+                    if(shortestDistance == 0 || (GetCorner() != null && GetCorner().AttachedLineAt(direction) == null)) {
+                        Debug.Log("CHANGE TO THE DRAWING STATE");
+                        //state = PlayerStates.Drawing;
+                        blocked = true;
+                    }
+
+                    /* We can continue travelling along the lines */
+                    else {
+                        /*
+                         * 
+                         * TODO: Take into account nearby players.
+                         * BEST CASE SCENARIO: aim to use PredeterminePlayerMovement()
+                         * 
+                         */
+                        MovePlayer(direction, shortestDistance);
+                        distance -= shortestDistance;
+                    }
                 }
 
 
@@ -293,7 +323,6 @@ public class Player {
                 else if(state == PlayerStates.Drawing) {
                     blocked = true;
                 }
-
             }
 
             else {
@@ -445,44 +474,20 @@ public class Player {
          * Any input that points the player off their line will cause the player to enter the drawing state.
          */
         else if(state == PlayerStates.PreDrawing) {
-            float grid = gameController.gridSize;
+
+            /* If the player is on a corner, change their current line relative to their direction */
+            ChangeCurrentLine(primary, OrthogonalDirection.NULL);
 
             /* Determine how to handle a non-null input */
             if(primary != OrthogonalDirection.NULL) {
-                /* When on a corner... */
-                if(GetCorner() != null) {
-                    /* ...And inputting a direction that leads to a line... */
-                    if(GetCorner().AttachedLineAt(primary) != null) {
-                        /* ...Use the primary input to travel */
-                        direction = primary;
-                    }
 
-                    /* ...And inputting a direction that leads off the corner... */
-                    else {
-                        /* ...Enter the drawing state */
-                        state = PlayerStates.Drawing;
-                        direction = UpdatePlayerInputDirection(state, primary, secondairy);
-                    }
+                /* If the player is pointing at a direction perpendicular to their line,
+                 * change their direction to match the line to indicate moving towards the grid */
+                if(GetCorner() == null && currentLine.IsDirectionPerpendicular(primary)) {
+                    direction = Corner.NextDirection(primary);
                 }
-
-                /* When on a line... */
                 else {
-                    /* ...And inputting a direction along said line... */
-                    if(currentLine.IsDirectionParallel(primary)) {
-                        /* ...Use primary input to travel */
-                        direction = primary;
-                    }
-
-                    /* ...And inputting a direction perpendicular to said line... */
-                    else {
-
-                        //////CHECK IF THE PLAYER IS ON A GRID.
-                        //////ELSE, SET DISTANCE TO CLOSEST GRID/CORNER
-                        //////Make a "nearest grid" function that returns the direction to the nearest grid OR corner
-                        /* ...Enter the drawing state */
-                        state = PlayerStates.Drawing;
-                        direction = UpdatePlayerInputDirection(state, primary, secondairy);
-                    }
+                    direction = primary;
                 }
             }
         }
@@ -580,6 +585,7 @@ public class Player {
 
         return desiredLine;
     }
+
 
     #endregion
 }
