@@ -166,6 +166,22 @@ public class PlayerControls {
         return secondairyInput;
     }
 
+    public bool GetButtonInput(int buttonIndex) {
+        /*
+         * Given a button index, return whether the button is pressed or not.
+         */
+        bool buttonState = false;
+
+        if(buttonIndex >= extraButtonCount || buttonIndex < 0) {
+            Debug.Log("WARNING: Looking for input of a button out of button index");
+        }
+        else {
+            buttonState = buttonsStates[buttonIndex];
+        }
+
+        return buttonState;
+    }
+
     #endregion
     
 }

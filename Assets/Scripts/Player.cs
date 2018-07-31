@@ -1,12 +1,29 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+
+/*
+ * Potential states a player can be in during gameplay
+ */
+public enum PlayerStates {
+    NULL,
+    Travelling,
+    PreDrawing,
+    Drawing
+};
+
 /*
  * The player object which contains 
  */
 public class Player {
 
     #region Variables  --------------------------------------------------------- */
+
+    /* The gameController that created this player */
+    public GameController gameController;
+
+    /* The current state of the player */
+    public PlayerStates state;
 
     /* The controls used by this player */
     public PlayerControls controls;
@@ -29,12 +46,14 @@ public class Player {
 
     #region Constructors --------------------------------------------------------- */
 
-    public Player(GameObject playerContainer) {
+    public Player(GameObject playerContainer, GameController parentGameController) {
         /*
          * Create the player and their required objects. Any gameObjects created will
          * be placed in the given playerContainer.
          */
 
+        gameController = parentGameController;
+        state = PlayerStates.Travelling;
         currentLine = null;
         controls = new PlayerControls();
         gamePosition = Vector3.zero;
@@ -153,12 +172,39 @@ public class Player {
     #endregion
 
 
+    #region Input Functions --------------------------------------------------------- */
+
+    public void UpdateInputs() {
+        /*
+         * Update the inputs of the player. This includes changing the state from 
+         * travelling to pre-drawing if the player has pressed a button.
+         */
+
+        /* Update the directional and button inputs for this state */
+        controls.UpdateInputs();
+
+        /* Pressing button0 while travelling will put the player into the pre-drawing state */
+        if(state == PlayerStates.Travelling && controls.GetButtonInput(0)) {
+            state = PlayerStates.PreDrawing;
+        }
+
+        /* Not holding button0 while pre-drawing will return the player to the travelling state */
+        else if(state == PlayerStates.PreDrawing && !controls.GetButtonInput(0)) {
+            state = PlayerStates.Travelling;
+        }
+    }
+
+    #endregion
+
+    
     #region Moving Functions --------------------------------------------------------- */
 
-    public void MovePlayerRequest(OrthogonalDirection dir1, OrthogonalDirection dir2, ref float distance) {
+    public void MovePlayerRequest(OrthogonalDirection primary, OrthogonalDirection secondairy, ref float distance) {
         /*
-         * Move the player along their line in the given direction for up to the given distance or
-         * they reach a corner with no linked line in the given direction.
+         * Move the player along their line. How they are moved is determined by the player's
+         * state, the inputs they are using and their current line.
+         * 
+         * 
          */
         OrthogonalDirection direction = OrthogonalDirection.NULL;
 
@@ -168,70 +214,91 @@ public class Player {
         bool blocked = false;
         while(distance > 0 && !blocked) {
             
-            /* If the player is on a corner, change their current line relative to their direction */
-            ChangeCurrentLine(dir1, dir2);
-
-            /* Get the direction that is parallel to the current line */
-            if(currentLine.IsHorizontal()) {
-                direction = Line.ReturnHorizontalDirection(dir1, dir2);
-            }
-            else if(currentLine.IsVertical()) {
-                direction = Line.ReturnVerticalDirection(dir1, dir2);
-            }
+            /* Get the direction the player will move in relative to their state */
+            direction = UpdatePlayerInputDirection(state, primary, secondairy);
             
-            /* If the player is not holding a direction parallel to the line, use their primairy input */
-            if(direction == OrthogonalDirection.NULL) {
-                direction = dir1;
-            }
-            
+            if(direction != OrthogonalDirection.NULL) {
 
-            /*
-             * If the direction to use is perpendicular to the current line, scan the nearby corners
-             * to see if there is an attached line pointing in the given direction
-             */
-            if(currentLine.IsDirectionPerpendicular(direction)) {
-                OrthogonalDirection newDirection = ScanForLineInDirection(direction);
-                if(newDirection != OrthogonalDirection.NULL) {
-                    direction = newDirection;
+                /*
+                 * Travel in the given direction for up to the given distance or until 
+                 * the player reaches a corner with no linked line in the given direction.
+                 */
+                if(state == PlayerStates.Travelling) {
 
-                    /* Update their current line if needed to reflect the change */
-                    ChangeCurrentLine(newDirection, OrthogonalDirection.NULL);
-                }
-            }
-            
-            /* The given direction is parallel to the current line */
-            if(Corner.HoriDirection(direction) && currentLine.IsHorizontal() ||
-                    Corner.VertDirection(direction) && currentLine.IsVertical()) {
+                    /* The given direction is parallel to the current line */
+                    if(currentLine.IsDirectionParallel(direction)) {
 
-                /* Scan ahead from the player's position to see how far the player is allowed to travel */
-                float travelDistance = 0;
-                currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance, distance, true, ref blocked);
+                        /* Scan ahead from the player's position to see how far the player is allowed to travel */
+                        float travelDistance = 0;
+                        currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance, distance, true, ref blocked);
+                        //Debug.Log("moving towards " + direction + " " + travelDistance);
 
-                //Debug.Log("moving towards " + direction + " " + travelDistance);
+                        /* Move the player by the amount of distance to travel and update the remaining distance */
+                        MovePlayer(direction, travelDistance);
+                        distance -= travelDistance;
 
-                /* Move the player by the amount of distance to travel and update the remaining distance */
-                MovePlayer(direction, travelDistance);
-                distance -= travelDistance;
-                
-                /* We reached a corner if we still have distance to travel and are not blocked */
-                if(distance > 0 && !blocked) {
-                    
-                    /* Check if either given directions will let the player pass the corner */
-                    if(GetCorner().AttachedLineAt(dir1) != null || GetCorner().AttachedLineAt(dir2) != null) {
-                        //We can move onto the next line, ie repeat the loop
+                        /* We reached a corner if we still have distance to travel and are not blocked */
+                        if(distance > 0 && !blocked) {
+
+                            /* Check if either given directions will let the player pass the corner */
+                            if(GetCorner().AttachedLineAt(primary) != null || GetCorner().AttachedLineAt(secondairy) != null) {
+                                //We can move onto the next line, ie repeat the loop
+                            }
+                            else {
+                                //The corner ends here - the player cannot leave the line
+                                blocked = true;
+                                Debug.Log("CANT LEAVE LINE");
+                            }
+                        }
                     }
+
+                    /* The given direction does not follow the line - stop the player from moving */
                     else {
-                        //The corner ends here - the player cannot leave the line
                         blocked = true;
-                        //Debug.Log("CANT LEAVE LINE");
+                        Debug.Log("Cannot go further");
                     }
                 }
+
+
+                /*
+                 * In the pre-drawing state, the direction controls where the player travels.
+                 * If direction is equal to what their primary input is, ie it was unchanged,
+                 * travel normally along the direction until a corner.
+                 * 
+                 * If direction is NOT equal to the primary input because it was changed from UpdatePlayerInputDirection(),
+                 * then the player is trying to find the nearest grid mark to start drawing from
+                 * 
+                 * If direction does not match primary, that means we are trying to enter the drawing
+                 * state but we are not on the grid.
+                 */
+                else if(state == PlayerStates.PreDrawing) {
+
+                    /* Get the shortest distance between the remaining distance to travel and the distance to the corner */
+                    float shortestDistance = Mathf.Min(currentLine.DistanceToCorner(gamePosition, direction), distance);
+                    
+                    /* If we are trying to find the nearest grid mark, update shortestDistance to reflect said distance */
+                    if(direction != primary) {
+                        //shortestDistance = Mathf.Min(shortestDistance, distanceToClosestGrid());
+                    }
+
+                    /* Move the player along the given direction for the shortest of the distances */
+                    MovePlayer(direction, shortestDistance);
+                    distance -= shortestDistance;
+                }
+
+
+                /*
+                 * In the drawing state, just block the player for now.
+                 */
+                else if(state == PlayerStates.Drawing) {
+                    blocked = true;
+                }
+
             }
-            /* The given direction is perpendicular - the player cannot leave the line */
+
             else {
-                //Cant leave the line
+                /* The given direction is NULL - stop the player in their current position */
                 blocked = true;
-                //Debug.Log("CANT LEAVE LINE");
             }
         }
     }
@@ -324,10 +391,117 @@ public class Player {
         }
     }
 
+    private OrthogonalDirection UpdatePlayerInputDirection(PlayerStates givenState, 
+            OrthogonalDirection primary, OrthogonalDirection secondairy) {
+        /*
+         * Return the direction the player will attempt to travel towards. This direction
+         * is obtained by analyzing the given directions and player state.
+         */
+        OrthogonalDirection direction = OrthogonalDirection.NULL;
+
+        /*
+         * In the travelling state, the player will travel along their current line and favor
+         * their primary inputted direction over their secondairy.
+         */
+        if(state == PlayerStates.Travelling) {
+
+            /* If the player is on a corner, change their current line relative to their direction */
+            ChangeCurrentLine(primary, secondairy);
+
+            /* Get the direction that is parallel to the current line */
+            if(currentLine.IsHorizontal()) {
+                direction = Line.ReturnHorizontalDirection(primary, secondairy);
+            }
+            else if(currentLine.IsVertical()) {
+                direction = Line.ReturnVerticalDirection(primary, secondairy);
+            }
+
+            /* If the player is not holding a direction parallel to the line, use their primairy input */
+            if(direction == OrthogonalDirection.NULL) {
+                direction = primary;
+            }
+
+            /*
+             * If the direction to use is perpendicular to the current line, scan the nearby corners
+             * to see if there is an attached line pointing in the given direction
+             */
+            if(currentLine.IsDirectionPerpendicular(direction)) {
+                OrthogonalDirection newDirection = ScanForLineInDirection(direction);
+                if(newDirection != OrthogonalDirection.NULL) {
+                    direction = newDirection;
+
+                    /* Update their current line if needed to reflect the change */
+                    ChangeCurrentLine(newDirection, OrthogonalDirection.NULL);
+                }
+            }
+        }
+
+        /*
+         * When in the PreDrawing state, the player is prepared to leave their current line
+         * to start drawing their own line. The movement in this state aims to put the player
+         * onto a nearby corner or onto one of the grid edges determined by the game's size.
+         * 
+         * Only use the primary input in this mode and get the grid size of the linked game controller.
+         * Any input that points the player off their line will cause the player to enter the drawing state.
+         */
+        else if(state == PlayerStates.PreDrawing) {
+            float grid = gameController.gridSize;
+
+            /* Determine how to handle a non-null input */
+            if(primary != OrthogonalDirection.NULL) {
+                /* When on a corner... */
+                if(GetCorner() != null) {
+                    /* ...And inputting a direction that leads to a line... */
+                    if(GetCorner().AttachedLineAt(primary) != null) {
+                        /* ...Use the primary input to travel */
+                        direction = primary;
+                    }
+
+                    /* ...And inputting a direction that leads off the corner... */
+                    else {
+                        /* ...Enter the drawing state */
+                        state = PlayerStates.Drawing;
+                        direction = UpdatePlayerInputDirection(state, primary, secondairy);
+                    }
+                }
+
+                /* When on a line... */
+                else {
+                    /* ...And inputting a direction along said line... */
+                    if(currentLine.IsDirectionParallel(primary)) {
+                        /* ...Use primary input to travel */
+                        direction = primary;
+                    }
+
+                    /* ...And inputting a direction perpendicular to said line... */
+                    else {
+
+                        //////CHECK IF THE PLAYER IS ON A GRID.
+                        //////ELSE, SET DISTANCE TO CLOSEST GRID/CORNER
+                        //////Make a "nearest grid" function that returns the direction to the nearest grid OR corner
+                        /* ...Enter the drawing state */
+                        state = PlayerStates.Drawing;
+                        direction = UpdatePlayerInputDirection(state, primary, secondairy);
+                    }
+                }
+            }
+        }
+
+        /*
+         * When in the drawing state, dont do anything for now
+         */
+        else if(state == PlayerStates.Drawing) {
+            Debug.Log("Drawing state");
+            direction = OrthogonalDirection.NULL;
+        }
+
+        return direction;
+    }
+
     #endregion
 
 
-    #region Moving Functions --------------------------------------------------------- */
+    #region Helper Functions --------------------------------------------------------- */
 
     private OrthogonalDirection ScanForLineInDirection(OrthogonalDirection direction) {
         /*

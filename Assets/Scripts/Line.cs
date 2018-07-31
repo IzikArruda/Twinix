@@ -232,9 +232,10 @@ public class Line {
         Vector3 vectorDirection = Corner.DirectionToVector(direction);
 
         /* Get the distance needed to reach the corner */
-        float distanceToStart = Vector3.Scale((start - givenPositon), vectorDirection).x + Vector3.Scale((start - givenPositon), vectorDirection).y;
-        float distanceToEnd = Vector3.Scale((end - givenPositon), vectorDirection).x + Vector3.Scale((end - givenPositon), vectorDirection).y;
-        float distanceToCorner = Mathf.Max(distanceToStart, distanceToEnd);
+        //float distanceToStart = Vector3.Scale((start - givenPositon), vectorDirection).x + Vector3.Scale((start - givenPositon), vectorDirection).y;
+        //float distanceToEnd = Vector3.Scale((end - givenPositon), vectorDirection).x + Vector3.Scale((end - givenPositon), vectorDirection).y;
+        //float distanceToCorner = Mathf.Max(distanceToStart, distanceToEnd);
+        float distanceToCorner = DistanceToCorner(givenPositon, direction);
 
         /* Use the smaller distance between the remaining distance and the distance to the corner */
         float distanceOnCurrentLine = maxtravelDistance - currentDistanceTravelled;
@@ -502,29 +503,40 @@ public class Line {
         return perpendicular;
     }
 
-    public bool PointOnLine(Vector3 position) {
+    public bool PointOnLine(Vector3 position, bool includeCorners) {
         /*
          * Return whether the given position is on the current line or not.
-         * If the point is on a corner, it is not considered on the line.
+         * The given boolean determines if we will include it's corners as part of the line.
          */
         bool onLine = false;
-        float min, max, flat;
-        min = max = flat = 0;
+        float min, max, posFlat, posRange, flat;
+        min = max = flat = posFlat = posRange = 0;
 
         /* Set the values of the line to compare the position */
         if(IsHorizontal()) {
             flat = startCorner.position.y;
             min = Mathf.Min(startCorner.position.x, endCorner.position.x);
             max = Mathf.Max(startCorner.position.x, endCorner.position.x);
-            if(position.y == flat && position.x > min && position.x < max) {
-                onLine = true;
-            }
+            posFlat = position.y;
+            posRange = position.x;
         }
         else if(IsVertical()) {
             flat = startCorner.position.x;
             min = Mathf.Min(startCorner.position.y, endCorner.position.y);
             max = Mathf.Max(startCorner.position.y, endCorner.position.y);
-            if(position.x == flat && position.y > min && position.y < max) {
+            posFlat = position.x;
+            posRange = position.y;
+        }
+
+        /* Compare the position to the line and it's corners */
+        if(includeCorners) {
+            if(posFlat == flat && posRange >= min && posRange <= max) {
+                onLine = true;
+            }
+        }
+        /* Compare the position to only the line and not it's corners */
+        else {
+            if(posFlat == flat && posRange > min && posRange < max) {
                 onLine = true;
             }
         }
@@ -542,8 +554,8 @@ public class Line {
         Line newLine = null;
         Corner newCorner = null;
 
-        /* Check if the given position is actually on the line */
-        if(PointOnLine(splitPosition)) {
+        /* Check if the given position is on this line, exclusing the corners */
+        if(PointOnLine(splitPosition, false)) {
 
             /* Create a new line that goes from the given position to the current line's end */
             newLine = Line.NewLine(splitPosition.x, splitPosition.y, end.x, end.y);
@@ -567,6 +579,26 @@ public class Line {
         }
 
         return newLine;
+    }
+
+    public float DistanceToCorner(Vector3 position, OrthogonalDirection direction) {
+        /*
+         * Given a direction along this line and a position on the line,
+         * return the distance require to reach the given position to the corner.
+         * 
+         * If either the given position is not on the line or the given direction
+         * is not parallel to the line, print an error statement.
+         */
+        float distance = 0;
+
+        if(PointOnLine(position, true) && IsDirectionParallel(direction)) {
+            distance = (position - GetCornerInGivenDirection(direction).position).magnitude;
+        }
+        else {
+            Debug.Log("WARNING: A given position or direction do not reflect the current line");
+        }
+
+        return distance;
     }
 
     #endregion

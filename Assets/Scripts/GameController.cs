@@ -23,8 +23,9 @@ public class GameController {
     private float tick = 0;
 
     /* The sizes of the game area */
-    private float gameAreaX;
-    private float gameAreaY;
+    public float gameAreaX;
+    public float gameAreaY;
+    public float gridSize;
 
     /* The width of the lines that are created in this game controller */
     private float lineWidth = 5;
@@ -45,14 +46,12 @@ public class GameController {
 
     #region Constructors --------------------------------------------------------- */
 
-    public GameController(GameObject container, float width, float height, WindowController linkedWindow) {
+    public GameController(GameObject container, WindowController linkedWindow) {
         /*
          * Create a new game with the given sizes
          */
 
         playerContainer = container;
-        gameAreaX = width;
-        gameAreaY = height;
         windowController = linkedWindow;
         lines = new List<Line>();
         corners = new Dictionary<Vector3, Corner>();
@@ -79,7 +78,7 @@ public class GameController {
         if(players == null) { players = new Player[playerCount]; }
         for(int i = 0; i < players.Length; i++) {
             if(players[i] == null) {
-                players[i] = new Player(playerContainer);
+                players[i] = new Player(playerContainer, this);
             }
         }
 
@@ -114,7 +113,7 @@ public class GameController {
 
         /* Place the players onto random lines */
         for(int i = 0; i < players.Length; i++) {
-            players[i].SetStartingLine(lines[Mathf.FloorToInt(Random.Range(0, lines.Count-1))], Mathf.FloorToInt(Random.Range(0, 1)));
+            players[i].SetStartingLine(lines[Mathf.FloorToInt(Random.Range(0, lines.Count-1))], Random.Range(0f, 1f));
         }
 
         /* Give the lineDrawer the new edges and corners of the game area */
@@ -201,6 +200,7 @@ public class GameController {
          */
         gameAreaX = 20;
         gameAreaY = 20;
+        gridSize = 0.1f;
         Vector3[] sequence = {
             new Vector3(0, 0, 0),
             new Vector3(gameAreaX/2f, 0, 0),
@@ -234,6 +234,7 @@ public class GameController {
          */
         gameAreaX = 20;
         gameAreaY = 20;
+        gridSize = 0.1f;
         Vector3[] sequence = {
             new Vector3(0, 0, 0),
             new Vector3(gameAreaX, 0, 0),
@@ -315,7 +316,7 @@ public class GameController {
          */
 
         for(int i = 0; i < players.Length; i++) {
-            players[i].controls.UpdateInputs();
+            players[i].UpdateInputs();
         }
     }
 

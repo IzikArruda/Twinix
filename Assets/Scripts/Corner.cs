@@ -11,8 +11,6 @@ public enum OrthogonalDirection {
     Right,
     Down,
     Left
-
-    //get if its horizontal
 };
 
 /*
