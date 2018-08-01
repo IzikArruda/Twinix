@@ -208,6 +208,57 @@ public class Line {
     #endregion
 
 
+
+    #region Line Functions  --------------------------------------------------------- */
+
+    public Line SplitLine(Vector3 splitPosition, GameController gameController) {
+        /*
+         * Split the current line into two lines along with a corner.
+         * The given position is where the line will be split.
+         * The function will always shorten the current line 
+         * from it's end position and keep it's start position unchanged.
+         */
+        Line newLine = null;
+        Corner newCorner = null;
+
+        /* Check if the given position is on this line, exclusing the corners */
+        if(PointOnLine(splitPosition, false)) {
+
+            /* Create a new line that goes from the given position to the current line's end */
+            newLine = NewLine(splitPosition.x, splitPosition.y, end.x, end.y);
+
+            /* Link the new line to the end corner of this line */
+            newCorner = endCorner;
+            newCorner.RemoveLine(this);
+            newCorner.AddLine(newLine);
+
+            /* Reposition the end point of this line to match the new line's starting position */
+            end = splitPosition;
+
+            /* Create a new corner that connects this line with the new line */
+            newCorner = Corner.NewCorner(splitPosition);
+            newCorner.AddLine(this);
+            newCorner.AddLine(newLine);
+
+            /* Re-create the vertices that make up the two lines */
+            newLine.GenerateVertices(gameController);
+            GenerateVertices(gameController);
+
+            /* Add the line and corner to the gameController and it's lineDrawer */
+            gameController.AddLine(newLine);
+            gameController.AddCorner(newCorner);
+        }
+
+        if(linkedPlayers.Count > 0) {
+            Debug.Log("Split line with players on it");
+        }
+
+        return newLine;
+    }
+    
+    #endregion
+
+
     #region Helper Functions  --------------------------------------------------------- */
 
     public void PredeterminePlayerMovement(Player player, Vector3 givenPositon, OrthogonalDirection direction, 
@@ -542,43 +593,6 @@ public class Line {
         }
 
         return onLine;
-    }
-
-    public Line SplitLine(Vector3 splitPosition) {
-        /*
-         * Split the current line into two lines along with a corner.
-         * The given position is where the line will be split.
-         * The function will always shorten the current line 
-         * from it's end position and keep it's start position unchanged.
-         */
-        Line newLine = null;
-        Corner newCorner = null;
-
-        /* Check if the given position is on this line, exclusing the corners */
-        if(PointOnLine(splitPosition, false)) {
-
-            /* Create a new line that goes from the given position to the current line's end */
-            newLine = Line.NewLine(splitPosition.x, splitPosition.y, end.x, end.y);
-
-            /* Link the new line to the end corner of this line */
-            newCorner = endCorner;
-            newCorner.RemoveLine(this);
-            newCorner.AddLine(newLine);
-
-            /* Reposition the end point of this line to match the new line's starting position */
-            end = splitPosition;
-
-            /* Create a new corner that connects this line with the new line */
-            newCorner = Corner.NewCorner(splitPosition);
-            newCorner.AddLine(this);
-            newCorner.AddLine(newLine);
-        }
-
-        if(linkedPlayers.Count > 0) {
-            Debug.Log("Split line with players on it");
-        }
-
-        return newLine;
     }
 
     public float DistanceToCorner(Vector3 position, OrthogonalDirection direction) {

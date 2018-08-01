@@ -106,22 +106,17 @@ public class GameController {
         
         /* Set the width and Initialize the meshes for each lines. */
         foreach(Line line in lines) {
-            line.width = lineWidth;
-            line.GenerateVertices(this);
-            line.GenerateMesh();
+            RefreshLine(line);
         }
 
         /* Place the players onto random lines */
         for(int i = 0; i < players.Length; i++) {
             players[i].SetStartingLine(lines[Mathf.FloorToInt(Random.Range(0, lines.Count-1))], Random.Range(0f, 1f));
         }
-
-        /* Give the lineDrawer the new edges and corners of the game area */
-        lineDrawer.NewGameArea(lines, corners.Values);
     }
 
     #endregion
-
+    
 
     #region Level Layout Functions  --------------------------------------------------------- */
     
@@ -168,7 +163,7 @@ public class GameController {
 
                 /* Create a line if the previous entry in the sequence exists */
                 if(sequence[i-1].x != float.NegativeInfinity) {
-                    lines.Add(Line.NewLine(sequence[i-1], sequence[i]));
+                    AddLine(Line.NewLine(sequence[i-1], sequence[i]));
                 }
             }
         }
@@ -255,11 +250,9 @@ public class GameController {
          * Create a corner at the given coordinates.
          */
         Vector3 cornerPosition = new Vector3(x, y, 0);
-        Corner newCorner;
 
         if(!corners.ContainsKey(cornerPosition)) {
-            newCorner = Corner.NewCorner(cornerPosition);
-            corners.Add(cornerPosition, newCorner);
+            AddCorner(Corner.NewCorner(cornerPosition));
         }
         else {
             /////Debug.Log("WARNING: Trying to create a corner ontop of another corner");
@@ -345,6 +338,51 @@ public class GameController {
                 //Debug.Log("remaining distance: " + travelDistance);
             }
         }
+    }
+
+    #endregion
+
+
+    #region Line/Corner Update Functions  --------------------------------------------------------- */
+
+    private void RefreshLine(Line line) {
+        /*
+         * Re-create the line to reflect a change in it's width and size
+         */
+
+        line.width = lineWidth;
+        line.GenerateVertices(this);
+        line.GenerateMesh();
+    }
+
+    public void AddLineCorner(Line newLine, Corner newCorner) {
+        /*
+         * Run the AddLine and AddCorner functions for the given line and corner
+         */
+
+        AddLine(newLine);
+        AddCorner(newCorner);
+    }
+
+    public void AddLine(Line newLine) {
+        /*
+         * A new line is added to the game area. Add this new line to
+         * this gameController's line tracker and the lineDrawer's lines.
+         */
+
+        RefreshLine(newLine);
+        lines.Add(newLine);
+        lineDrawer.AddLine(newLine);
+    }
+
+    public void AddCorner(Corner newCorner) {
+        /*
+         * A new corner is added to the game area. Add this new corner to
+         * this gameController's corner tracker and the lineDrawer's corners.
+         */
+
+        corners.Add(newCorner.position, newCorner);
+        lineDrawer.AddCorner(newCorner);
     }
 
     #endregion

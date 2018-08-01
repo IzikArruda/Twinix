@@ -53,7 +53,8 @@ public class Player {
          */
 
         gameController = parentGameController;
-        state = PlayerStates.Travelling;
+        state = PlayerStates.NULL;
+        ChangeState(PlayerStates.Travelling);
         currentLine = null;
         controls = new PlayerControls();
         gamePosition = Vector3.zero;
@@ -185,12 +186,12 @@ public class Player {
 
         /* Pressing button0 while travelling will put the player into the pre-drawing state */
         if(state == PlayerStates.Travelling && controls.GetButtonInput(0)) {
-            state = PlayerStates.PreDrawing;
+            ChangeState(PlayerStates.PreDrawing);
         }
 
         /* Not holding button0 while pre-drawing will return the player to the travelling state */
         else if(state == PlayerStates.PreDrawing && !controls.GetButtonInput(0)) {
-            state = PlayerStates.Travelling;
+            ChangeState(PlayerStates.Travelling);
         }
     }
 
@@ -271,7 +272,7 @@ public class Player {
                  * state but we are not on the grid.
                  */
                 else if(state == PlayerStates.PreDrawing) {
-                    float shortestDistance = currentLine.DistanceToCorner(gamePosition, direction);
+                    float shortestDistance = 0;
                     
                     /* If we are trying to find the nearest grid mark, update shortestDistance to reflect said distance */
                     if(direction != primary) {
@@ -290,29 +291,35 @@ public class Player {
                         }
                     }
 
+                    /* If we are travelling along the line, update shortestDistance to reflect the upcomming corner */
+                    else if(GetCorner() == null || GetCorner().AttachedLineAt(direction) != null) {
+                        shortestDistance = currentLine.DistanceToCorner(gamePosition, direction);
+                    }
+
                     /* Prevent the player from travelling further than the remaining distance allows */
                     shortestDistance = Mathf.Min(shortestDistance, distance);
-
                     
+
                     /* If we have reached a corner that doesn't have a line in the given direction
                      * OR we have reached a grid marker (indicated by shortestDistance = 0),
                      * then we start drawing a line from the player's given position */
                     if(shortestDistance == 0 || (GetCorner() != null && GetCorner().AttachedLineAt(direction) == null)) {
-                        Debug.Log("CHANGE TO THE DRAWING STATE");
-                        //state = PlayerStates.Drawing;
-                        blocked = true;
+
+                        if(PreEnterDrawingCheck(direction)) {
+                            Debug.Log("CHANGE TO THE DRAWING STATE");
+                            ChangeState(PlayerStates.Drawing);
+                        }
+                        else {
+                            blocked = true;
+                        }
                     }
 
                     /* We can continue travelling along the lines */
                     else {
-                        /*
-                         * 
-                         * TODO: Take into account nearby players.
-                         * BEST CASE SCENARIO: aim to use PredeterminePlayerMovement()
-                         * 
-                         */
-                        MovePlayer(direction, shortestDistance);
-                        distance -= shortestDistance;
+                        float travelDistance = 0;
+                        currentLine.PredeterminePlayerMovement(this, gamePosition, direction, ref travelDistance, shortestDistance, true, ref blocked);
+                        MovePlayer(direction, travelDistance);
+                        distance -= travelDistance;
                     }
                 }
 
@@ -322,6 +329,8 @@ public class Player {
                  */
                 else if(state == PlayerStates.Drawing) {
                     blocked = true;
+
+                    //When pressing a direction,
                 }
             }
 
@@ -501,6 +510,71 @@ public class Player {
         }
 
         return direction;
+    }
+
+    #endregion
+
+    
+    #region State Functions --------------------------------------------------------- */
+
+    private void ChangeState(PlayerStates newState) {
+        /*
+         * Change the player's current state to the new given state.
+         * Only change the state if the new given state is not null
+         * or equal to the current state.
+         */
+
+        if(newState != state && newState != PlayerStates.NULL) {
+            
+            if(newState == PlayerStates.Travelling) {
+                Debug.Log("Entered the travelling state");
+            }
+
+            else if(newState == PlayerStates.PreDrawing) {
+                Debug.Log("Entered the pre-drawing state");
+            }
+
+            else if(newState == PlayerStates.Drawing) {
+                Debug.Log("Entered the drawing state");
+            }
+            
+            /* Finish by changing the state */
+            state = newState;
+        }
+    }
+
+    private bool PreEnterDrawingCheck(OrthogonalDirection direction) {
+        /*
+         * This determines whether, in the player's current state, they can
+         * enter the drawing state. Return true if the player was succsefully
+         * placed onto a new drawing line and can beign drawing. Return 
+         * false if any of these actions fail.
+         */
+        bool beginDrawing = false;
+        Corner corner = null;
+        if(!currentLine.PointOnLine(gamePosition, true)) {
+            Debug.Log("Warning: player not on the line when trying to start drawing");
+        }
+        
+        /* If the player is not on a corner, split the current line at their position */
+        if(GetCorner() == null) {
+            currentLine.SplitLine(gamePosition, gameController);
+        }
+
+        /* Get the corner the player will start drawing from */
+        corner = GetCorner();
+        
+        /* Let the player start drawing if they can move in the given direction */
+        if(corner != null && corner.AttachedLineAt(direction) == null) {
+            beginDrawing = true;
+
+            /* Create a new line that the player will use to draw */
+            //Line drawLine = Line.NewLine(gamePosition, gamePosition);
+            //drawLine.AddCorners();//Make a function that adds the two corners to the line (start, end)
+            //Put the player on a new line
+        }
+
+        return beginDrawing;
     }
 
     #endregion

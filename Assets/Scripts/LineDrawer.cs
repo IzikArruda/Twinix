@@ -46,34 +46,7 @@ public class LineDrawer {
 
     
     #region Outside Called Functions ------------------------------------------------------------- */
-
-    public void NewGameArea(List<Line> edges, Dictionary<Vector3, Corner>.ValueCollection edgeCorner) {
-        /*
-         * A new game area is set up, so save it's sizes and add it's edges/corners to be rendered
-         */
-
-        for(int i = 0; i < edges.Count; i++) {
-            lines.Add(edges[i]);
-        }
-
-        foreach(Corner corner in edgeCorner) {
-            corners.Add(corner);
-        }
-        for(int i = 0; i < edgeCorner.Count; i++) {
-            //
-        }
-    }
-
-    public void AddPlayers(Player[] playersToAdd) {
-        /*
-         * Add the given array of players to the list of players to render
-         */
-
-        for(int i = 0; i < playersToAdd.Length; i++) {
-            players.Add(playersToAdd[i]);
-        }
-    }
-
+    
     public void UpdateLineVertices() {
         /*
          * Called when the lines need to reset their vertices due to a change 
@@ -88,9 +61,35 @@ public class LineDrawer {
         }
     }
 
+    public void AddPlayers(Player[] playersToAdd) {
+        /*
+         * Add the given array of players to the list of players to render
+         */
+
+        for(int i = 0; i < playersToAdd.Length; i++) {
+            players.Add(playersToAdd[i]);
+        }
+    }
+
+    public void AddLine(Line newLine) {
+        /*
+         * Add the given line to the list of lines to draw
+         */
+
+        lines.Add(newLine);
+    }
+
+    public void AddCorner(Corner newCorner) {
+        /*
+         * Add the given corner tot he list of corners to draw
+         */
+
+        corners.Add(newCorner);
+    }
+
     #endregion
 
-
+    
     #region Drawing Functions ------------------------------------------------------------- */
 
     public void DrawAll() {
