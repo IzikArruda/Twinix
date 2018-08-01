@@ -47,8 +47,7 @@ public class Line {
     public static Line NewLine(float startX, float startY, float endX, float endY) {
         return new Line(new Vector3(startX, startY, 0), new Vector3(endX, endY, 0));
     }
-
-
+    
     #endregion
 
 
@@ -207,8 +206,7 @@ public class Line {
 
     #endregion
 
-
-
+    
     #region Line Functions  --------------------------------------------------------- */
 
     public Line SplitLine(Vector3 splitPosition, GameController gameController) {

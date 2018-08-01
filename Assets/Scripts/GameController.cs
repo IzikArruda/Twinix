@@ -380,7 +380,7 @@ public class GameController {
          * A new corner is added to the game area. Add this new corner to
          * this gameController's corner tracker and the lineDrawer's corners.
          */
-
+         
         corners.Add(newCorner.position, newCorner);
         lineDrawer.AddCorner(newCorner);
     }

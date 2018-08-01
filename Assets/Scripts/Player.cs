@@ -160,10 +160,10 @@ public class Player {
          */
         Corner currentCorner = null;
 
-        if(gamePosition.Equals(currentLine.startCorner.position)) {
+        if(gamePosition.Equals(currentLine.start)) {
             currentCorner = currentLine.startCorner;
         }
-        else if(gamePosition.Equals(currentLine.endCorner.position)) {
+        else if(gamePosition.Equals(currentLine.end)) {
             currentCorner = currentLine.endCorner;
         }
 
@@ -308,6 +308,11 @@ public class Player {
                         if(PreEnterDrawingCheck(direction)) {
                             Debug.Log("CHANGE TO THE DRAWING STATE");
                             ChangeState(PlayerStates.Drawing);
+
+                            //Catch an error that I think has occured once
+                            if(distance <= 0) {
+                                Debug.Log("!!ERROR!!: Changed into the drawing state without any distance left to move. This should not happen");
+                            }
                         }
                         else {
                             blocked = true;
@@ -325,12 +330,26 @@ public class Player {
 
 
                 /*
-                 * In the drawing state, just block the player for now.
+                 * In the drawing state, simply move the player along their drawing line's direction
+                 * and update their drawing line's position to reflect the change.
                  */
                 else if(state == PlayerStates.Drawing) {
-                    blocked = true;
+                    float travelDistance = distance;
 
-                    //When pressing a direction,
+                    /* Only move the player along the line perpendicularly */
+                    if(!currentLine.IsDirectionParallel(direction)) {
+                        travelDistance = 0;
+                        blocked = true;
+                    }
+
+                    /* Move the player */
+                    if(travelDistance > 0) {
+                        MovePlayer(direction, travelDistance);
+                        distance -= travelDistance;
+                        /* Update the player's line to reflect the player's position change */
+                        currentLine.end = gamePosition;
+                        currentLine.GenerateVertices(gameController);
+                    }
                 }
             }
 
@@ -502,11 +521,10 @@ public class Player {
         }
 
         /*
-         * When in the drawing state, dont do anything for now
+         * When in the drawing state, only use the player's primary direction
          */
         else if(state == PlayerStates.Drawing) {
-            Debug.Log("Drawing state");
-            direction = OrthogonalDirection.NULL;
+            direction = primary;
         }
 
         return direction;
@@ -549,6 +567,9 @@ public class Player {
          * enter the drawing state. Return true if the player was succsefully
          * placed onto a new drawing line and can beign drawing. Return 
          * false if any of these actions fail.
+         * 
+         * When creating the new line for the player, link the line's start corner
+         * to the corner and have the player draw from the end corner of their line.
          */
         bool beginDrawing = false;
         Corner corner = null;
@@ -569,9 +590,17 @@ public class Player {
             beginDrawing = true;
 
             /* Create a new line that the player will use to draw */
-            //Line drawLine = Line.NewLine(gamePosition, gamePosition);
-            //drawLine.AddCorners();//Make a function that adds the two corners to the line (start, end)
-            //Put the player on a new line
+            Line drawLine = Line.NewLine(gamePosition, gamePosition);
+
+            /* Link the new line's start corner to the corner's direction side */
+            corner.LinkLineStart(drawLine, direction);
+            
+            /* Move the player to the new line */
+            Debug.Log(drawLine.startCorner.position + " _ " + corner.position);
+            ChangeCurrentLine(drawLine);
+
+            /* Add the new drawing line to the gameController */
+            gameController.AddLine(drawLine);
         }
 
         return beginDrawing;

@@ -154,10 +154,35 @@ public class Corner {
 
         return removed;
     }
+    
+    public bool LinkLineStart(Line line, OrthogonalDirection direction) {
+        /*
+         * Link the given line's start corner to this corner along
+         * the given direction. Return true if the connection was made.
+         */
+        bool connected = false;
+
+        /* Make sure the line's start corner is on the same position as this corner */
+        if(!position.Equals(line.start)) {
+            Debug.Log("WARNING: This corner does not connect to the given line's start corner");
+            connected = false;
+        }
+        
+        /* Set this corner's saved line to the given line */
+        if(AddLine(line, direction)) {
+
+        }
+        else {
+            Debug.Log("WARNING: This corner already has a line linked to the given direction");
+            connected = false;
+        }
+
+        return connected;
+    }
 
     #endregion
 
-    
+
     #region Helper Functions  --------------------------------------------------------- */
 
     public OrthogonalDirection LineSide(Line line) {
@@ -193,6 +218,9 @@ public class Corner {
         }
         else if(direction.Equals(Vector3.left)) {
             orthogonalDirection = OrthogonalDirection.Left;
+        }
+        else if(direction.Equals(Vector3.zero)){
+            Debug.Log("WARNING: Trying to add a line with 0 length");
         }
         
         return orthogonalDirection;
