@@ -65,34 +65,32 @@ public class Line {
          */
         Vector3 lineExtraWidth = Vector3.zero;
         Vector3 lineExtraLength = Vector3.zero;
-
-
+        
         /* Convert each vertice of the line from game position to screen positions */
         vertices[0] = gameController.GameToScreenPos(end);
         vertices[1] = gameController.GameToScreenPos(end);
         vertices[2] = gameController.GameToScreenPos(start);
         vertices[3] = gameController.GameToScreenPos(start);
-
-
+        
         /* Apply the line's width to either the Y or X axis, depending on what axis the line is on */
-        if(start.x == end.x/* Horizontal */) {
+        if(IsVertical()) {
             lineExtraWidth = new Vector3(width/2f, 0);
             lineExtraLength = new Vector3(0, width/2f);
             /* Flip the mesh if needed */
-            if(start.y > end.y) {
-                lineExtraWidth *= -1;
+            if(Corner.IsDirectionNegative(StartToEndDirection())) {
                 lineExtraLength *= -1;
+                lineExtraWidth *= -1;
             }
         }
-        else if(start.y == end.y/* Vertical */) {
+        else if(IsHorizontal()) {
             lineExtraWidth = new Vector3(0, width/2f);
             lineExtraLength = new Vector3(width/2f, 0);
             /* Flip the mesh if needed */
-            if(start.x < end.x) {
-                lineExtraWidth *= -1;
+            if(Corner.IsDirectionNegative(StartToEndDirection())) {
+                lineExtraLength *= -1;
             }
             else {
-                lineExtraLength *= -1;
+                lineExtraWidth *= -1;
             }
         }
         else {
@@ -281,9 +279,6 @@ public class Line {
         Vector3 vectorDirection = Corner.DirectionToVector(direction);
 
         /* Get the distance needed to reach the corner */
-        //float distanceToStart = Vector3.Scale((start - givenPositon), vectorDirection).x + Vector3.Scale((start - givenPositon), vectorDirection).y;
-        //float distanceToEnd = Vector3.Scale((end - givenPositon), vectorDirection).x + Vector3.Scale((end - givenPositon), vectorDirection).y;
-        //float distanceToCorner = Mathf.Max(distanceToStart, distanceToEnd);
         float distanceToCorner = DistanceToCorner(givenPositon, direction);
 
         /* Use the smaller distance between the remaining distance and the distance to the corner */
@@ -380,19 +375,15 @@ public class Line {
          * If there is a player within the range, change the given boolean.
          * Return the position of where the collision occured.
          */
-        float minRange = 0, maxRange = 0, playerPos = 0;
+        float playerPos = 0;
         Vector3 collisionPosition = Vector3.zero;
 
         /* Calculate the proper min and max ranges of the two positions */
-        if(IsHorizontal()) {
-            minRange = Mathf.Min(position1.x, position2.x);
-            maxRange = Mathf.Max(position1.x, position2.x);
-        }
-        else if(IsVertical()) {
-            minRange = Mathf.Min(position1.y, position2.y);
-            maxRange = Mathf.Max(position1.y, position2.y);
-        }
-
+        float pos1 = Corner.GetVectorAxisValue(position1, StartToEndDirection());
+        float pos2 = Corner.GetVectorAxisValue(position2, StartToEndDirection());
+        float minRange = Mathf.Min(pos1, pos2);
+        float maxRange = Mathf.Max(pos1, pos2);
+        
         for(int i = 0; i < linkedPlayers.Count; i++) {
 
             /* Ignore the player if they are at the same position as the given player */
@@ -467,61 +458,73 @@ public class Line {
         return vertDir;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public Corner GetCornerInGivenDirection(OrthogonalDirection direction) {
         /*
-         * Return the corner that the given direction points to
+         * Return the corner that the given direction points to.
+         * If both corners are on the same position, return the start corner.
          */
         Corner corner = null;
+        Vector3 cornerPosition = GetCornerPositionInGivenDirection(direction);
 
-        /* If the line is horizontal... */
-        if(IsHorizontal()) {
-            /* ... And we want the corner on the right... */
-            if(direction == OrthogonalDirection.Right) {
-                /* ... Return the corner with the larger x position */
-                if(startCorner.position.x > endCorner.position.x) {
-                    corner = startCorner;
-                }
-                else {
-                    corner = endCorner;
-                }
-            }
-            /* ... And we want the corner on the left... */
-            else if(direction == OrthogonalDirection.Left) {
-                /* ... Return the corner with the smaller x position */
-                if(startCorner.position.x < endCorner.position.x) {
-                    corner = startCorner;
-                }
-                else {
-                    corner = endCorner;
-                }
-            }
+        /* Use GetCornerPositionInGivenDirection and compare the position of the corner */
+        if(start.Equals(cornerPosition)) {
+            corner = startCorner;
         }
-
-        /* If the line is vertical... */
-        else if(IsVertical()) {
-            /* ... And we want the corner on the top... */
-            if(direction == OrthogonalDirection.Up) {
-                /* ... Return the corner with the larger y position */
-                if(startCorner.position.y > endCorner.position.y) {
-                    corner = startCorner;
-                }
-                else {
-                    corner = endCorner;
-                }
-            }
-            /* ... And we want the corner on the bottom... */
-            else if(direction == OrthogonalDirection.Down) {
-                /* ... Return the corner with the smaller y position */
-                if(startCorner.position.y < endCorner.position.y) {
-                    corner = startCorner;
-                }
-                else {
-                    corner = endCorner;
-                }
-            }
+        else {
+            corner = endCorner;
         }
 
         return corner;
+    }
+    
+    public Vector3 GetCornerPositionInGivenDirection(OrthogonalDirection direction) {
+        /*
+         * Return the position where the line ends at in the given direction
+         */
+        Vector3 position = Vector3.zero;
+        Vector3 newPosition = Vector3.zero;
+        float startPos, endPos;
+        startPos = endPos = 0;
+        
+        /* If the given direction is a negative direction, flip the start and end values */
+        bool flip = Corner.IsDirectionNegative(direction);
+
+        /* Set the start and end values relative to their axis */
+        startPos = Corner.GetVectorAxisValue(start, direction);
+        endPos = Corner.GetVectorAxisValue(end, direction);
+
+        /* Do the comparasion */
+        if(flip ^ (startPos > endPos)) {
+            newPosition = start;
+        }
+        else {
+            newPosition = end;
+        }
+        
+        return newPosition;
     }
     
     public bool IsDirectionParallel(OrthogonalDirection direction) {
@@ -551,48 +554,29 @@ public class Line {
 
         return perpendicular;
     }
-
+    
     public bool PointOnLine(Vector3 position, bool includeCorners) {
         /*
          * Return whether the given position is on the current line or not.
          * The given boolean determines if we will include it's corners as part of the line.
          */
         bool onLine = false;
-        float min, max, posFlat, posRange, flat;
-        min = max = flat = posFlat = posRange = 0;
+        OrthogonalDirection lineDirection = StartToEndDirection();
+        float posRange = Corner.GetVectorAxisValue(position, lineDirection);
+        float min = Mathf.Min(Corner.GetVectorAxisValue(start, lineDirection), Corner.GetVectorAxisValue(end, lineDirection));
+        float max = Mathf.Max(Corner.GetVectorAxisValue(start, lineDirection), Corner.GetVectorAxisValue(end, lineDirection));
+        //Use a NextDirection to get a direction perpendicular to the line
+        float flat = Corner.GetVectorAxisValue(start, Corner.NextDirection(lineDirection));
+        float posFlat = Corner.GetVectorAxisValue(position, Corner.NextDirection(lineDirection));
 
-        /* Set the values of the line to compare the position */
-        if(IsHorizontal()) {
-            flat = startCorner.position.y;
-            min = Mathf.Min(startCorner.position.x, endCorner.position.x);
-            max = Mathf.Max(startCorner.position.x, endCorner.position.x);
-            posFlat = position.y;
-            posRange = position.x;
-        }
-        else if(IsVertical()) {
-            flat = startCorner.position.x;
-            min = Mathf.Min(startCorner.position.y, endCorner.position.y);
-            max = Mathf.Max(startCorner.position.y, endCorner.position.y);
-            posFlat = position.x;
-            posRange = position.y;
-        }
-
-        /* Compare the position to the line and it's corners */
-        if(includeCorners) {
-            if(posFlat == flat && posRange >= min && posRange <= max) {
-                onLine = true;
-            }
-        }
-        /* Compare the position to only the line and not it's corners */
-        else {
-            if(posFlat == flat && posRange > min && posRange < max) {
-                onLine = true;
-            }
+        /* Compare the position to the line (and it's corners if needed) */
+        if(posFlat == flat && ((posRange > min && posRange < max) || (includeCorners && (posRange == min || posRange == max)))) {
+            onLine = true;
         }
 
         return onLine;
     }
-
+    
     public float DistanceToCorner(Vector3 position, OrthogonalDirection direction) {
         /*
          * Given a direction along this line and a position on the line,
@@ -604,7 +588,7 @@ public class Line {
         float distance = 0;
 
         if(PointOnLine(position, true) && IsDirectionParallel(direction)) {
-            distance = (position - GetCornerInGivenDirection(direction).position).magnitude;
+            distance = (position - GetCornerPositionInGivenDirection(direction)).magnitude;
         }
         else {
             Debug.Log("WARNING: A given position or direction do not reflect the current line");
@@ -653,9 +637,27 @@ public class Line {
         return remainder;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public OrthogonalDirection StartToEndDirection() {
         /*
          * Return the direction gotten by going from the start position towards the end position.
+         * This function is used to get the direction the line is heading towards.
          */
         OrthogonalDirection lineDirection = OrthogonalDirection.NULL;
 

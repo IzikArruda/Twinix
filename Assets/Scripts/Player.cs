@@ -304,9 +304,9 @@ public class Player {
                     /* If we have reached a corner that doesn't have a line in the given direction
                      * OR we have reached a grid marker (indicated by shortestDistance = 0),
                      * then we start drawing a line from the player's given position */
-                    if(shortestDistance == 0 || (GetCorner() != null && GetCorner().AttachedLineAt(direction) == null)) {
+                    if(shortestDistance == 0 || (GetCorner() != null && GetCorner().AttachedLineAt(primary) == null)) {
 
-                        if(PreEnterDrawingCheck(direction)) {
+                        if(PreEnterDrawingCheck(primary)) {
                             ChangeState(PlayerStates.Drawing);
 
                             //Catch an error that I think has occured once
@@ -318,6 +318,7 @@ public class Player {
                             }
                         }
                         else {
+                            Debug.Log("FAILED???");
                             blocked = true;
                         }
                     }
@@ -394,6 +395,7 @@ public class Player {
             /* Prevent the loop from getting stuck */
             loopCount++;
             if(loopCount > 100) {
+                blocked = true;
                 Debug.Log("----------------------");
                 Debug.Log("--- LOOP WAS STUCK ---");
                 Debug.Log("----------------------");
@@ -643,6 +645,9 @@ public class Player {
             /* Add the new drawing line to the gameController */
             gameController.AddLine(drawLine);
         }
+        else {
+            Debug.Log("SPLIT FAILED: " + gamePosition + " " + direction + " " + corner.AttachedLineAt(direction));
+        }
 
         return beginDrawing;
     }
@@ -729,42 +734,37 @@ public class Player {
 
         return desiredLine;
     }
-
-    float GetPositionOnDirection(OrthogonalDirection direction) {
-        /*
-         * Given a direction, return the value of the player's position 
-         * along the given direction's axis.
-         */
-        float position = 0;
-
-        if(Corner.HoriDirection(direction)) {
-            position = gamePosition.x;
-        }
-        else if(Corner.VertDirection(direction)) {
-            position = gamePosition.y;
-        }
-
-        return position;
-    }
-
+    
     float NearestGrid(OrthogonalDirection direction) {
         /*
          * Return the distance the player is from the nearest grid mark in the given direction.
+         * The sign of the directions matter when handling the grid marks, as shown bellow:
+         * 
+         * |--o-------| The player (o) is 0.2 units from the left mark. The spacing of | is one unit.
+         * 
+         * When wanting the distance to the left mark, we can get the remainder of the player's 
+         * position divided by the grid mark's spacing. But, to get the distance to the right mark,
+         * we need to flip it so we get the opposite of the remaining distance : 0.8.
          */
         float distanceToGrid = 0;
+        float playerPosition = Corner.GetVectorAxisValue(gamePosition, direction);
 
-        /* Get the distance to the nearest grid no matter the cur */
-        if(Corner.IsDirectionNegative(direction)) {
-            distanceToGrid = GetPositionOnDirection(direction) % gameController.gridSize;
+        /* The playerPosition must be positive for the function to work */
+        if(playerPosition < 0) {
+            playerPosition += gameController.gridSize*(Mathf.CeilToInt(Mathf.Abs(playerPosition)/gameController.gridSize));
         }
-        else {
-            distanceToGrid = gameController.gridSize - (GetPositionOnDirection(direction) % gameController.gridSize);
-        }
+        
+        /* Get the distance from the player's position to the closest positive grid */
+        distanceToGrid = playerPosition % gameController.gridSize;
 
-        if(distanceToGrid == gameController.gridSize) {
-            distanceToGrid = 0;
+        /* Positive directions must flip their remainder so it tracks the remaining distance, not the remainder */
+        if(!Corner.IsDirectionNegative(direction)) {
+            distanceToGrid = gameController.gridSize - distanceToGrid;
+            if(distanceToGrid == gameController.gridSize) {
+                distanceToGrid = 0;
+            }
         }
-
+        
         return distanceToGrid;
     }
 

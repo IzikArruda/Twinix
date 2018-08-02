@@ -76,8 +76,25 @@ public class WindowController : MonoBehaviour {
         }
 
 
+
+        /*
+         * Holding down the P key will stop the game from updating.
+         * Pressing the O key will make the game advance one step.
+         */
+        bool update = true;
+        if(Input.GetKey("p")) {
+            if(Input.GetKeyDown("o")) {
+                update = true;
+            }
+            else {
+                update = false;
+            }
+        }
+
         /* Update the game to the next step */
-        gameController.UpdateGame();
+        if(update) {
+            gameController.UpdateGame();
+        }
     }
 
     #endregion

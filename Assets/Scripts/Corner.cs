@@ -386,5 +386,36 @@ public class Corner {
         return negativeDirection;
     }
 
+    static public bool IsDirectionsOpposites(OrthogonalDirection dir1, OrthogonalDirection dir2) {
+        /*
+         * Return true if the two given directions are opposites
+         */
+        bool oppositeDirections = false;
+
+        if(dir1.Equals(OppositeDirection(dir2))) {
+            oppositeDirections = true;
+        }
+
+        return oppositeDirections;
+    }
+
+    static public float GetVectorAxisValue(Vector3 vector, OrthogonalDirection axis) {
+        /*
+         * Given a vector and an axis represented as an orthogonal direction,
+         * return the value of vector's given axis. 
+         * i.e.: a vector of (0, 1, 2) and a given axis of UP or DOWN would return 1.
+         */
+        float axisValue = 0;
+
+        if(HoriDirection(axis)) {
+            axisValue = vector.x;
+        }
+        else if(VertDirection(axis)) {
+            axisValue = vector.y;
+        }
+
+        return axisValue;
+    }
+
     #endregion
 }
