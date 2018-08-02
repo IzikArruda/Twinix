@@ -358,5 +358,33 @@ public class Corner {
         return direction;
     }
 
+    static public bool IsDirectionsPerpendicular(OrthogonalDirection dir1, OrthogonalDirection dir2) {
+        /*
+         * Return true if dir2 is perpendicular to dir1
+         */
+        bool perpendicular = false;
+
+        if(dir1.Equals(NextDirection(dir2)) || dir1.Equals(PreviousDirection(dir2))) {
+            perpendicular = true;
+        }
+
+        return perpendicular;
+    }
+
+    static public bool IsDirectionNegative(OrthogonalDirection direction) {
+        /*
+         * Return whether the given direction goes along the negative axis.
+         * ie, up is along the positive Y axis, but down is along the negative Y axis.
+         */
+        bool negativeDirection = false;
+
+        if(direction.Equals(OrthogonalDirection.Down) ||
+                direction.Equals(OrthogonalDirection.Left)) {
+            negativeDirection = true;
+        }
+
+        return negativeDirection;
+    }
+
     #endregion
 }

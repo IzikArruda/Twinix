@@ -653,5 +653,32 @@ public class Line {
         return remainder;
     }
 
+    public OrthogonalDirection StartToEndDirection() {
+        /*
+         * Return the direction gotten by going from the start position towards the end position.
+         */
+        OrthogonalDirection lineDirection = OrthogonalDirection.NULL;
+
+        if(IsHorizontal()) {
+            if(start.x < end.x) {
+                lineDirection = OrthogonalDirection.Right;
+            }
+            else if(start.x > end.x) {
+                lineDirection = OrthogonalDirection.Left;
+            }
+        }
+
+        else if(IsVertical()) {
+            if(start.y < end.y) {
+                lineDirection = OrthogonalDirection.Up;
+            }
+            else if(start.y > end.y) {
+                lineDirection = OrthogonalDirection.Down;
+            }
+        }
+
+        return lineDirection;
+    }
+    
     #endregion
 }

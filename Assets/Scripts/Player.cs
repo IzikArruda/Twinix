@@ -211,6 +211,7 @@ public class Player {
          * Keep moving the player along the given direction until they run out of distance or are blocked
          */
         bool blocked = false;
+        int loopCount = 0;
         while(distance > 0 && !blocked) {
             
             /* Get the direction the player will move in relative to their state */
@@ -306,10 +307,12 @@ public class Player {
                     if(shortestDistance == 0 || (GetCorner() != null && GetCorner().AttachedLineAt(direction) == null)) {
 
                         if(PreEnterDrawingCheck(direction)) {
-                            Debug.Log("CHANGE TO THE DRAWING STATE");
                             ChangeState(PlayerStates.Drawing);
 
                             //Catch an error that I think has occured once
+                            //TODO: BUGFIX
+                            //The player is able to split their line but without entering the drawing state.
+                            //Also, got stuck in an infinite loop at one point when just entering the drawing state
                             if(distance <= 0) {
                                 Debug.Log("!!ERROR!!: Changed into the drawing state without any distance left to move. This should not happen");
                             }
@@ -334,13 +337,42 @@ public class Player {
                  * and update their drawing line's position to reflect the change.
                  */
                 else if(state == PlayerStates.Drawing) {
-                    float travelDistance = distance;
+                    float travelDistance = 0;
+                    OrthogonalDirection lineDirection = currentLine.StartToEndDirection();
+                    
+                    /* Let the player move forward normally */
+                    if(direction.Equals(lineDirection)) {
+                        Debug.Log("forward");
+                        travelDistance = distance;
+                    }
 
-                    /* Only move the player along the line perpendicularly */
-                    if(!currentLine.IsDirectionParallel(direction)) {
-                        travelDistance = 0;
+                    /* Turning the line requires the player to be on a grid mark */
+                    else if(Corner.IsDirectionsPerpendicular(direction, lineDirection)) {
+                        float distanceToGrid = NearestGrid(lineDirection);
+                        Debug.Log(distanceToGrid);
+                        /* If the player is on the grid mark, create a new line to change their direction */
+                        if(distanceToGrid == 0) { 
+                            blocked = true;
+                            Debug.Log("TURNING");
+                        }
+
+                        /* Change the travel distance to reach the grid mark */
+                        else{
+                            travelDistance = Mathf.Min(distance, distanceToGrid);
+                            direction = lineDirection;
+                        }
+                    }
+
+                    /* Don't let the player move backwards along the line */
+                    else {
+                        Debug.Log("DONT TURN BACK");
                         blocked = true;
                     }
+
+
+
+
+                    
 
                     /* Move the player */
                     if(travelDistance > 0) {
@@ -356,6 +388,15 @@ public class Player {
             else {
                 /* The given direction is NULL - stop the player in their current position */
                 blocked = true;
+            }
+
+
+            /* Prevent the loop from getting stuck */
+            loopCount++;
+            if(loopCount > 100) {
+                Debug.Log("----------------------");
+                Debug.Log("--- LOOP WAS STUCK ---");
+                Debug.Log("----------------------");
             }
         }
     }
@@ -589,14 +630,14 @@ public class Player {
         if(corner != null && corner.AttachedLineAt(direction) == null) {
             beginDrawing = true;
 
-            /* Create a new line that the player will use to draw */
-            Line drawLine = Line.NewLine(gamePosition, gamePosition);
+            /* Create a new line that the player will use to draw. Place the end point of 
+             * the line slightly forward to the line's a direction and not a point */
+            Line drawLine = Line.NewLine(gamePosition, gamePosition + 1*Corner.DirectionToVector(direction));
 
             /* Link the new line's start corner to the corner's direction side */
             corner.LinkLineStart(drawLine, direction);
             
             /* Move the player to the new line */
-            Debug.Log(drawLine.startCorner.position + " _ " + corner.position);
             ChangeCurrentLine(drawLine);
 
             /* Add the new drawing line to the gameController */
@@ -689,6 +730,43 @@ public class Player {
         return desiredLine;
     }
 
+    float GetPositionOnDirection(OrthogonalDirection direction) {
+        /*
+         * Given a direction, return the value of the player's position 
+         * along the given direction's axis.
+         */
+        float position = 0;
+
+        if(Corner.HoriDirection(direction)) {
+            position = gamePosition.x;
+        }
+        else if(Corner.VertDirection(direction)) {
+            position = gamePosition.y;
+        }
+
+        return position;
+    }
+
+    float NearestGrid(OrthogonalDirection direction) {
+        /*
+         * Return the distance the player is from the nearest grid mark in the given direction.
+         */
+        float distanceToGrid = 0;
+
+        /* Get the distance to the nearest grid no matter the cur */
+        if(Corner.IsDirectionNegative(direction)) {
+            distanceToGrid = GetPositionOnDirection(direction) % gameController.gridSize;
+        }
+        else {
+            distanceToGrid = gameController.gridSize - (GetPositionOnDirection(direction) % gameController.gridSize);
+        }
+
+        if(distanceToGrid == gameController.gridSize) {
+            distanceToGrid = 0;
+        }
+
+        return distanceToGrid;
+    }
 
     #endregion
 }
