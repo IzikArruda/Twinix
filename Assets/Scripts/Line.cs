@@ -93,8 +93,11 @@ public class Line {
                 lineExtraWidth *= -1;
             }
         }
+
+        /* If the line is not vertical or horizontal (it's a point), hide it's vertices */
         else {
-            Debug.Log("WARNING: Line is not directly horizontal or vertical");
+            lineExtraWidth = Vector3.zero;
+            lineExtraLength = Vector3.zero;
         }
         
         /* Put the desired distance between the vertices to add width to the lines.
@@ -413,7 +416,7 @@ public class Line {
          * Return true if the line is completely horizontal
          */
 
-        return (start.y == end.y);
+        return (start.y == end.y && start.x != end.x);
     }
     
     public bool IsVertical() {
@@ -421,7 +424,7 @@ public class Line {
          * Return true if the line is completely vertical
          */
 
-        return (start.x == end.x);
+        return (start.x == end.x && start.y != end.y);
     }
     
     public static OrthogonalDirection ReturnHorizontalDirection(OrthogonalDirection dir1, OrthogonalDirection dir2) {
@@ -457,30 +460,7 @@ public class Line {
 
         return vertDir;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
     public Corner GetCornerInGivenDirection(OrthogonalDirection direction) {
         /*
          * Return the corner that the given direction points to.
@@ -636,24 +616,7 @@ public class Line {
 
         return remainder;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
     public OrthogonalDirection StartToEndDirection() {
         /*
          * Return the direction gotten by going from the start position towards the end position.
@@ -677,6 +640,10 @@ public class Line {
             else if(start.y > end.y) {
                 lineDirection = OrthogonalDirection.Down;
             }
+        }
+
+        else {
+            Debug.Log("WARNING: Trying to find the direction of a point");
         }
 
         return lineDirection;

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 
 /*
@@ -309,12 +310,10 @@ public class Player {
                         if(PreEnterDrawingCheck(primary)) {
                             ChangeState(PlayerStates.Drawing);
 
-                            //Catch an error that I think has occured once
-                            //TODO: BUGFIX
-                            //The player is able to split their line but without entering the drawing state.
-                            //Also, got stuck in an infinite loop at one point when just entering the drawing state
+                            /* Catch if the player enters the drawing state without any distance left to travel.
+                             * This is so that we don't create a point line without travelling across it */
                             if(distance <= 0) {
-                                Debug.Log("!!ERROR!!: Changed into the drawing state without any distance left to move. This should not happen");
+                                throw new Exception("!!ERROR!!: Changed into the drawing state without any distance left to move. This should not happen");
                             }
                         }
                         else {
@@ -340,7 +339,7 @@ public class Player {
                 else if(state == PlayerStates.Drawing) {
                     float travelDistance = 0;
                     OrthogonalDirection lineDirection = currentLine.StartToEndDirection();
-                    
+
                     /* Let the player move forward normally */
                     if(direction.Equals(lineDirection)) {
                         Debug.Log("forward");
@@ -352,9 +351,10 @@ public class Player {
                         float distanceToGrid = NearestGrid(lineDirection);
                         Debug.Log(distanceToGrid);
                         /* If the player is on the grid mark, create a new line to change their direction */
-                        if(distanceToGrid == 0) { 
-                            blocked = true;
-                            Debug.Log("TURNING");
+                        if(distanceToGrid == 0) {
+
+                            /* Create a corner at the player's position and make a new drawing line off it */
+                            NewDrawingLine(direction, true);
                         }
 
                         /* Change the travel distance to reach the grid mark */
@@ -366,15 +366,10 @@ public class Player {
 
                     /* Don't let the player move backwards along the line */
                     else {
-                        Debug.Log("DONT TURN BACK");
+                        Debug.Log("DONT TURN BACK " + lineDirection);
                         blocked = true;
                     }
-
-
-
-
                     
-
                     /* Move the player */
                     if(travelDistance > 0) {
                         MovePlayer(direction, travelDistance);
@@ -615,7 +610,6 @@ public class Player {
          * to the corner and have the player draw from the end corner of their line.
          */
         bool beginDrawing = false;
-        Corner corner = null;
         if(!currentLine.PointOnLine(gamePosition, true)) {
             Debug.Log("Warning: player not on the line when trying to start drawing");
         }
@@ -624,36 +618,59 @@ public class Player {
         if(GetCorner() == null) {
             currentLine.SplitLine(gamePosition, gameController);
         }
-
-        /* Get the corner the player will start drawing from */
-        corner = GetCorner();
         
         /* Let the player start drawing if they can move in the given direction */
-        if(corner != null && corner.AttachedLineAt(direction) == null) {
+        if(GetCorner() != null && GetCorner().AttachedLineAt(direction) == null) {
             beginDrawing = true;
-
-            /* Create a new line that the player will use to draw. Place the end point of 
-             * the line slightly forward to the line's a direction and not a point */
-            Line drawLine = Line.NewLine(gamePosition, gamePosition + 1*Corner.DirectionToVector(direction));
-
-            /* Link the new line's start corner to the corner's direction side */
-            corner.LinkLineStart(drawLine, direction);
             
-            /* Move the player to the new line */
-            ChangeCurrentLine(drawLine);
-
-            /* Add the new drawing line to the gameController */
-            gameController.AddLine(drawLine);
+            NewDrawingLine(direction, false);
         }
         else {
-            Debug.Log("SPLIT FAILED: " + gamePosition + " " + direction + " " + corner.AttachedLineAt(direction));
+            Debug.Log("SPLIT FAILED: Player not on a corner or given direction already contains a line");
         }
 
         return beginDrawing;
     }
+    
+    public void NewDrawingLine(OrthogonalDirection direction, bool addCorner) {
+        /*
+         * Put the player onto a new drawing line from their given position. The given
+         * boolean determines whether we need to create a corner at the player's position.
+         */
 
+        /* Add a corner to the end of the current line if needed */
+        if(addCorner) {
+            if(currentLine.end.Equals(gamePosition)) {
+                /* Create the line and attach it to the corner */
+                Corner newCorner = Corner.NewCorner(gamePosition);
+                newCorner.AddLine(currentLine);
+
+                /* Add the corner to the gameController so it can be rendered */
+                gameController.AddCorner(newCorner);
+            }
+            else {
+                Debug.Log("WARNING: Trying to add a corner not on the end of a line");
+            }
+        }
+
+        /* Create a new line that the player will use to draw. Place the end point of 
+         * the line slightly forward to the line's a direction and not a point */
+        Line drawLine = Line.NewLine(gamePosition, gamePosition);
+        
+        /* Once the line is added to the drawing list, change it's end point to move forward 
+         * so that it's no longer a point but a line. This will keep it's visuals unchanged 
+         * so that we cannot see the line but it's treated as such. */
+        gameController.AddLine(drawLine);
+        drawLine.end += Corner.DirectionToVector(direction);
+
+        /* Link the new line's start corner to the corner's direction side */
+        GetCorner().LinkLineStart(drawLine, direction);
+
+        /* Move the player to the new line */
+        ChangeCurrentLine(drawLine);
+    }
+    
     #endregion
-
 
     #region Helper Functions --------------------------------------------------------- */
 
