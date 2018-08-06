@@ -672,6 +672,7 @@ public class Player {
     
     #endregion
 
+
     #region Helper Functions --------------------------------------------------------- */
 
     private OrthogonalDirection ScanForLineInDirection(OrthogonalDirection direction) {

@@ -371,6 +371,19 @@ public class Corner {
         return perpendicular;
     }
 
+    static public bool IsDirectionsParallel(OrthogonalDirection dir1, OrthogonalDirection dir2) {
+        /*
+         * Return true if dir2 is parallel to dir1
+         */
+        bool parallel = false;
+
+        if(dir1.Equals(dir2) || dir1.Equals(OppositeDirection(dir2))) {
+            parallel = true;
+        }
+
+        return parallel;
+    }
+
     static public bool IsDirectionNegative(OrthogonalDirection direction) {
         /*
          * Return whether the given direction goes along the negative axis.

@@ -338,6 +338,10 @@ public class GameController {
                 //Debug.Log("remaining distance: " + travelDistance);
             }
         }
+
+
+        /* Check if player 1's current line is colliding with the first line in the game */
+        Debug.Log(LineCollide(players[0].currentLine, lines[0]));
     }
 
     #endregion
@@ -430,6 +434,63 @@ public class GameController {
         screenPos = new Vector3(widthRatio*gamePosition.x, heightRatio*gamePosition.y) - centerOffset;
 
         return screenPos;
+    }
+
+    public bool DoesLineCollide(Vector3 start, Vector3 end) {
+        /*
+         * Given a start and end position that define a line, return whether any corners
+         * or lines in the game collide with the given line.
+         */
+        bool collide = false;
+        Line tempLine = Line.NewLine(start, end);
+
+        for(int i = 0; i < lines.Count && !collide; i++) {
+            collide = LineCollide(tempLine, lines[i]);
+        }
+
+        return collide;
+    }
+
+    public bool LineCollide(Line line1, Line line2) {
+        /*
+         * Return true if the two given lines collide with each other.
+         * All lines travel across only 1 axis, so the collision detection
+         * is assuming that each line only moves along one axis.
+         * 
+         * Include the corners as a part of the lines.
+         */
+        bool collide = false;
+        /* Get the directions of both lines */
+        OrthogonalDirection line1Dir = line1.StartToEndDirection();
+        OrthogonalDirection line2Dir = line2.StartToEndDirection();
+        /* Get the start to end ranges of both lines */
+        float line1Min = Mathf.Min(Corner.GetVectorAxisValue(line1.start, line1Dir), Corner.GetVectorAxisValue(line1.end, line1Dir));
+        float line1Max = Mathf.Max(Corner.GetVectorAxisValue(line1.start, line1Dir), Corner.GetVectorAxisValue(line1.end, line1Dir));
+        float line2Min = Mathf.Min(Corner.GetVectorAxisValue(line2.start, line2Dir), Corner.GetVectorAxisValue(line2.end, line2Dir));
+        float line2Max = Mathf.Max(Corner.GetVectorAxisValue(line2.start, line2Dir), Corner.GetVectorAxisValue(line2.end, line2Dir));
+        /* Get the flat axis value of each line */
+        float line1Flat = Corner.GetVectorAxisValue(line1.start, Corner.NextDirection(line1Dir));
+        float line2Flat = Corner.GetVectorAxisValue(line2.start, Corner.NextDirection(line2Dir));
+        
+        /* If the lines are parallel, they intercept if... */
+        if(Corner.IsDirectionsParallel(line1Dir, line2Dir)) {
+            /* Both lines have the same flat value */
+            if(line1Flat == line2Flat) {
+                /* and both line's max > the other's min and vice versa */
+                if(line1Min <= line2Max || line2Min <= line1Max) {
+                    collide = true;
+                }
+            }
+        }
+
+        /* If they are not on the same axis, check if both's flats are within both's ranges */
+        else {
+            if((line1Flat >= line2Min && line1Flat <= line2Max) && (line2Flat >= line1Min && line2Flat <= line1Max)) {
+                collide = true;
+            }
+        }
+
+        return collide;
     }
 
     #endregion
