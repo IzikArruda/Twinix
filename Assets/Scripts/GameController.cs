@@ -338,10 +338,6 @@ public class GameController {
                 //Debug.Log("remaining distance: " + travelDistance);
             }
         }
-
-
-        /* Check if player 1's current line is colliding with the first line in the game */
-        Debug.Log(LineCollide(players[0].currentLine, lines[0]));
     }
 
     #endregion
@@ -436,19 +432,29 @@ public class GameController {
         return screenPos;
     }
 
-    public bool DoesLineCollide(Vector3 start, Vector3 end) {
+    public Line DoesLineCollide(Vector3 start, Vector3 end, List<Line> linesToAvoid) {
         /*
-         * Given a start and end position that define a line, return whether any corners
-         * or lines in the game collide with the given line.
+         * Given a start and end position that define a line, return a line 
+         * that collides with the given line. 
+         * 
+         * NOTE: The line returned is not special other than it collided with the player.
+         * There could be other lines that have also collided with the given line.
+         * 
+         * Do not check for collisions with any of the given lines in the linesToAvoid array.
          */
-        bool collide = false;
+        Line collidedLine = null;
         Line tempLine = Line.NewLine(start, end);
 
-        for(int i = 0; i < lines.Count && !collide; i++) {
-            collide = LineCollide(tempLine, lines[i]);
+        for(int i = 0; i < lines.Count && collidedLine == null; i++) {
+
+            if(!DoesArrayContain(linesToAvoid, lines[i])) {
+                if(LineCollide(tempLine, lines[i])) {
+                    collidedLine = lines[i];
+                }
+            }
         }
 
-        return collide;
+        return collidedLine;
     }
 
     public bool LineCollide(Line line1, Line line2) {
@@ -477,7 +483,7 @@ public class GameController {
             /* Both lines have the same flat value */
             if(line1Flat == line2Flat) {
                 /* and both line's max > the other's min and vice versa */
-                if(line1Min <= line2Max || line2Min <= line1Max) {
+                if(line1Min <= line2Max && line1Max >= line2Min) {
                     collide = true;
                 }
             }
@@ -491,6 +497,24 @@ public class GameController {
         }
 
         return collide;
+    }
+
+    public bool DoesArrayContain(List<Line> linesArray, Line line) {
+        /*
+         * Given a list of lines and a single line, return true
+         * if the given single line is found in the given array.
+         */
+        bool found = false;
+
+        if(linesArray != null) {
+            for(int i = 0; i < linesArray.Count && !found; i++) {
+                if(linesArray[i].Equals(line)) {
+                    found = true;
+                }
+            }
+        }
+
+        return found;
     }
 
     #endregion

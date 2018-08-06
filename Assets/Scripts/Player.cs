@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 
 /*
@@ -342,7 +343,6 @@ public class Player {
 
                     /* Let the player move forward normally */
                     if(direction.Equals(lineDirection)) {
-                        Debug.Log("forward");
                         travelDistance = distance;
                     }
 
@@ -366,12 +366,28 @@ public class Player {
 
                     /* Don't let the player move backwards along the line */
                     else {
-                        Debug.Log("DONT TURN BACK " + lineDirection);
                         blocked = true;
                     }
                     
-                    /* Move the player */
+                    /* Move the player. If the player moves into a line, they will connect their drawing line */
                     if(travelDistance > 0) {
+
+                        /* Check if the player is about to collide into a line */
+                        Line collidedLine  = gameController.DoesLineCollide(gamePosition, gamePosition + travelDistance*Corner.DirectionToVector(direction), GetTouchingLines());
+                        
+
+                        if(collidedLine != null) {
+                            Debug.Log("MOVEMENT HIT A LINE");
+                            Debug.DrawLine(gamePosition, gamePosition + travelDistance*Corner.DirectionToVector(direction), Color.red, 5);
+                            Debug.DrawLine(collidedLine.start, collidedLine.end, Color.blue, 5);
+                        }
+                        else {
+                            Debug.Log("continue movement");
+                        }
+
+
+
+
                         MovePlayer(direction, travelDistance);
                         distance -= travelDistance;
                         /* Update the player's line to reflect the player's position change */
@@ -784,6 +800,27 @@ public class Player {
         }
         
         return distanceToGrid;
+    }
+
+    public List<Line> GetTouchingLines() {
+        /*
+         * Return a list of the lines that the player is currently touching.
+         * This includes the player's current line and current corner's attached lines.
+         */
+        List<Line> touchingLines;
+
+        /* If the player is on a corner, add it's attached lines */
+        if(GetCorner() != null) {
+            touchingLines = GetCorner().AttachedLines();
+        }
+
+        /* Only add the player's current line */
+        else {
+            touchingLines = new List<Line>();
+            touchingLines.Add(currentLine);
+        }
+
+        return touchingLines;
     }
 
     #endregion

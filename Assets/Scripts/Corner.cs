@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 
 /*
@@ -285,6 +286,34 @@ public class Corner {
 
         return attachedLine;
     }
+
+    public List<Line> AttachedLines() {
+        /*
+         * Return a list of each non-null attached lines connected to this corner
+         */
+        List<Line> touchingLines = new List<Line>();
+
+        /* Add each non-null attached line to the list */
+        if(up != null) {
+            touchingLines.Add(up);
+        }
+        if(right != null) {
+            touchingLines.Add(right);
+        }
+        if(down != null) {
+            touchingLines.Add(down);
+        }
+        if(left != null) {
+            touchingLines.Add(left);
+        }
+
+        return touchingLines;
+    }
+
+    #endregion
+
+
+    #region Orthogonal Direction Helper Functions  --------------------------------------------------------- */
 
     static public OrthogonalDirection NextDirection(OrthogonalDirection direction) {
         /*
