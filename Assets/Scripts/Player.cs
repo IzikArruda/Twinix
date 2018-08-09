@@ -859,28 +859,54 @@ public class Player {
          * find the distance to the closest collision point along the line starting from the line's start position.
          */
         float minDistance = (collidedLine.end - collidedLine.start).magnitude;
-        float flatCollidedLine = Corner.GetVectorAxisValue(collidedLine.start, collidedLine.StartToEndDirection());
-        float flatTempLine;
+        OrthogonalDirection collidedLineDirection = collidedLine.StartToEndDirection();
+        float flatCollidedLine = Corner.GetVectorAxisValue(collidedLine.start, collidedLineDirection);
+        float tempLineFlat;
 
         foreach(Line tempLine in lineList) {
+            
+            /* If both lines are parallel, compare the distance from the collidedLine's
+             * start to both corners of the temp line. This will let us know at what point
+             * a collision along the collidedLine's direction the collision occured. */
+            if(Corner.IsDirectionsParallel(collidedLineDirection, tempLine.StartToEndDirection())) {
 
+                /* Get the direction of the collidedLine */
+                Vector3 collidedDirectionVector = Corner.DirectionToVector(collidedLineDirection);
+                /* Get the vectors of the collidedLine's starting position to the temp line's corners */
+                Vector3 startToTempLineStart = Vector3.Scale(tempLine.start - collidedLine.start, collidedDirectionVector);
+                Vector3 startToTempLineEnd = Vector3.Scale(tempLine.end - collidedLine.start, collidedDirectionVector);
+                float startToStartDistance = Corner.GetVectorAxisValue(startToTempLineStart, collidedLineDirection);
+                float startToEndDistance = Corner.GetVectorAxisValue(startToTempLineEnd, collidedLineDirection);
 
-            /* If both lines are parallel, the line has collided with a corner
-             * Compare the distance from the collidedLine's start and the
-             * tempLine'es corners to see which one is within the collidedLine */
-            if(Corner.IsDirectionsParallel(collidedLine.StartToEndDirection(), tempLine.StartToEndDirection())) {
-                ///////////////////////////////////////TODO
-                Debug.Log("TWO PARALLEL LINES COLLIDED");
+                /* The tempLine passes through the start point of the collidedLine. Collision is done instantly */
+                if(Mathf.Min(startToStartDistance, startToEndDistance) < 0 && 
+                        Mathf.Max(startToStartDistance, startToEndDistance) > 0) {
+                    minDistance = 0;
+                    closestLine = tempLine;
+                }
+
+                /* The collidedLine continues until it hits a corner of tempLine */
+                else if(Mathf.Min(startToStartDistance, startToEndDistance) >= 0 &&
+                        Mathf.Max(startToStartDistance, startToEndDistance) >= 0) {
+                    if(minDistance > Mathf.Min(startToStartDistance, startToEndDistance)) {
+                        minDistance = Mathf.Min(startToStartDistance, startToEndDistance);
+                        closestLine = tempLine;
+                    }
+                }
+
+                else {
+                    Debug.Log("WARNING: Trying to find the collision point of two lines that do not collide");
+                }
             }
 
             /* If the lines are perpendicular, get the value of the line's flat axis
              * and compare it's position to the collided line's start */
-            else if(Corner.IsDirectionsPerpendicular(collidedLine.StartToEndDirection(), tempLine.StartToEndDirection())) {
-                flatTempLine = Corner.GetVectorAxisValue(tempLine.start, collidedLine.StartToEndDirection());
+            else if(Corner.IsDirectionsPerpendicular(collidedLineDirection, tempLine.StartToEndDirection())) {
+                tempLineFlat = Corner.GetVectorAxisValue(tempLine.start, collidedLineDirection);
 
                 /* The tempLine's collision point is closer to the start - use it as the new closestLine */
-                if(minDistance > Mathf.Abs(flatTempLine - flatCollidedLine)) {
-                    minDistance = Mathf.Abs(flatTempLine - flatCollidedLine);
+                if(minDistance > Mathf.Abs(tempLineFlat - flatCollidedLine)) {
+                    minDistance = Mathf.Abs(tempLineFlat - flatCollidedLine);
                     closestLine = tempLine;
                 }
             }
