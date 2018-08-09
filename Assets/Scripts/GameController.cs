@@ -432,29 +432,24 @@ public class GameController {
         return screenPos;
     }
 
-    public Line DoesLineCollide(Vector3 start, Vector3 end, List<Line> linesToAvoid) {
+    public List<Line> DoesLineCollide(Line collidingLine, List<Line> linesToAvoid) {
         /*
-         * Given a start and end position that define a line, return a line 
-         * that collides with the given line. 
-         * 
-         * NOTE: The line returned is not special other than it collided with the player.
-         * There could be other lines that have also collided with the given line.
+         * Given a start and end position that define a line, return a list of
+         * lines that collide with the given defined line.
          * 
          * Do not check for collisions with any of the given lines in the linesToAvoid array.
          */
-        Line collidedLine = null;
-        Line tempLine = Line.NewLine(start, end);
+        List<Line> collidedLines = new List<Line>();
 
-        for(int i = 0; i < lines.Count && collidedLine == null; i++) {
-
+        for(int i = 0; i < lines.Count; i++) {
             if(!DoesArrayContain(linesToAvoid, lines[i])) {
-                if(LineCollide(tempLine, lines[i])) {
-                    collidedLine = lines[i];
+                if(LineCollide(collidingLine, lines[i])) {
+                    collidedLines.Add(lines[i]);
                 }
             }
         }
 
-        return collidedLine;
+        return collidedLines;
     }
 
     public bool LineCollide(Line line1, Line line2) {

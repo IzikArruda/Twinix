@@ -349,7 +349,7 @@ public class Player {
                     /* Turning the line requires the player to be on a grid mark */
                     else if(Corner.IsDirectionsPerpendicular(direction, lineDirection)) {
                         float distanceToGrid = NearestGrid(lineDirection);
-                        Debug.Log(distanceToGrid);
+
                         /* If the player is on the grid mark, create a new line to change their direction */
                         if(distanceToGrid == 0) {
 
@@ -368,32 +368,62 @@ public class Player {
                     else {
                         blocked = true;
                     }
-                    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    /////////////////////TODO: Improve
                     /* Move the player. If the player moves into a line, they will connect their drawing line */
                     if(travelDistance > 0) {
+                        Line playersMovementPath = Line.NewLine(gamePosition, gamePosition + travelDistance*Corner.DirectionToVector(direction));
 
-                        /* Check if the player is about to collide into a line */
-                        Line collidedLine  = gameController.DoesLineCollide(gamePosition, gamePosition + travelDistance*Corner.DirectionToVector(direction), GetTouchingLines());
+                        /* Get a list of lines that the player's direction collides with */
+                        List<Line> collidedLines = gameController.DoesLineCollide(playersMovementPath, GetTouchingLines());
+                        Line closestLine = null;
+
+                        if(collidedLines.Count > 0) {
+                            /* Get the closest line and collision point along the line */
+                            float ClosestCollisionDistance = ClosestCollisionAlongLine(playersMovementPath, collidedLines, ref closestLine);
+
+                            travelDistance = ClosestCollisionDistance;
+                            blocked = true;
+                            Debug.Log("HIT LINE");
+                        }
                         
-
-                        if(collidedLine != null) {
-                            Debug.Log("MOVEMENT HIT A LINE");
-                            Debug.DrawLine(gamePosition, gamePosition + travelDistance*Corner.DirectionToVector(direction), Color.red, 5);
-                            Debug.DrawLine(collidedLine.start, collidedLine.end, Color.blue, 5);
-                        }
-                        else {
-                            Debug.Log("continue movement");
-                        }
-
-
-
-
                         MovePlayer(direction, travelDistance);
                         distance -= travelDistance;
                         /* Update the player's line to reflect the player's position change */
                         currentLine.end = gamePosition;
                         currentLine.GenerateVertices(gameController);
+                        
+                        /* If there was a collision, move the player onto the collided line and change their state */
+                        if(collidedLines.Count > 0) {
+                            Debug.Log(closestLine + " ---- ");
+                            ChangeCurrentLine(closestLine);
+                            ChangeState(PlayerStates.Travelling);
+                        }
                     }
+
+
+
+
+
+
+
+
+
+
+
                 }
             }
 
@@ -822,6 +852,47 @@ public class Player {
 
         return touchingLines;
     }
+
+    public float ClosestCollisionAlongLine(Line collidedLine, List<Line> lineList, ref Line closestLine) {
+        /*
+         * Given a collidedLine and list of lines that are known to collide with the collidedLine,
+         * find the distance to the closest collision point along the line starting from the line's start position.
+         */
+        float minDistance = (collidedLine.end - collidedLine.start).magnitude;
+        float flatCollidedLine = Corner.GetVectorAxisValue(collidedLine.start, collidedLine.StartToEndDirection());
+        float flatTempLine;
+
+        foreach(Line tempLine in lineList) {
+
+
+            /* If both lines are parallel, the line has collided with a corner
+             * Compare the distance from the collidedLine's start and the
+             * tempLine'es corners to see which one is within the collidedLine */
+            if(Corner.IsDirectionsParallel(collidedLine.StartToEndDirection(), tempLine.StartToEndDirection())) {
+                ///////////////////////////////////////TODO
+                Debug.Log("TWO PARALLEL LINES COLLIDED");
+            }
+
+            /* If the lines are perpendicular, get the value of the line's flat axis
+             * and compare it's position to the collided line's start */
+            else if(Corner.IsDirectionsPerpendicular(collidedLine.StartToEndDirection(), tempLine.StartToEndDirection())) {
+                flatTempLine = Corner.GetVectorAxisValue(tempLine.start, collidedLine.StartToEndDirection());
+
+                /* The tempLine's collision point is closer to the start - use it as the new closestLine */
+                if(minDistance > Mathf.Abs(flatTempLine - flatCollidedLine)) {
+                    minDistance = Mathf.Abs(flatTempLine - flatCollidedLine);
+                    closestLine = tempLine;
+                }
+            }
+
+            else {
+                Debug.Log("WARNING: Trying to find collision point between two lines that are not perpendicular nor parallel");
+            }
+        }
+
+        return minDistance;
+    }
+
 
     #endregion
 }
